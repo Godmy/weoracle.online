@@ -45,7 +45,9 @@
 
 	async function loadDiscussion() {
 		if (!currentQuestionId) return;
-		const res = await fetch(`/api/wbd/questions/${currentQuestionId}/discussion?round=${discussionRound}`);
+		const res = await fetch(
+			`/api/wbd/questions/${currentQuestionId}/discussion?round=${discussionRound}&expert_token=${data.token}`
+		);
 		discussionMessages = res.ok ? await res.json() : [];
 	}
 	$effect(() => {

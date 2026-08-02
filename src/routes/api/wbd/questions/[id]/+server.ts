@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { mapD1Error } from '$lib/server/wbd/db';
+import { requireQuestionOwner } from '$lib/server/wbd/auth';
 
 const TYPES = ['numeric', 'percentage', 'boolean'] as const;
 const PATCHABLE_COLUMNS = new Set(['text', 'category', 'type', 'unit', 'min_value', 'max_value', 'required']);
@@ -28,7 +29,10 @@ function normalizeBody(body: Record<string, unknown>) {
 	return out;
 }
 
-export const PATCH: RequestHandler = async ({ params, request, platform }) => {
+export const PATCH: RequestHandler = async ({ params, request, cookies, platform }) => {
+	const db = platform!.env.DB;
+	await requireQuestionOwner(cookies, db, params.id);
+
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body !== 'object') error(400, 'Invalid body');
 
@@ -43,7 +47,6 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 	const setClause = entries.map(([key], i) => `${key} = ?${i + 1}`).join(', ');
 	const values = entries.map(([, value]) => value);
 
-	const db = platform!.env.DB;
 	try {
 		const result = await db
 			.prepare(`UPDATE wbd_questions SET ${setClause} WHERE id = ?${entries.length + 1} RETURNING *`)
@@ -57,8 +60,10 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, platform }) => {
+export const DELETE: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
+	await requireQuestionOwner(cookies, db, params.id);
+
 	const result = await db
 		.prepare(`DELETE FROM wbd_questions WHERE id = ?1 RETURNING id`)
 		.bind(params.id)

@@ -1,3 +1,16 @@
+// Structural subset of the real (ambient, unimported) D1Database type — covers the
+// prepare().bind().first()/.all()/.run() shape used throughout src/lib/server/wbd and
+// src/routes/api/wbd. See the note below on why it's not the real ambient D1Database.
+export interface D1Like {
+	prepare(query: string): {
+		bind(...values: unknown[]): {
+			first<T = unknown>(): Promise<T | null>;
+			all<T = unknown>(): Promise<{ results: T[] }>;
+			run(): Promise<unknown>;
+		};
+	};
+}
+
 // `platform.env.*` bindings (D1Database, KVNamespace, R2Bucket, SendEmail, ...) are accessed
 // untyped (or via small local structural interfaces, e.g. KVLike in magic-link.ts) rather than
 // importing the real ambient types. Both `@cloudflare/workers-types` and including

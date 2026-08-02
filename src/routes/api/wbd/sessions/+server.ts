@@ -2,33 +2,37 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId, mapD1Error } from '$lib/server/wbd/db';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
+import { requireRole } from '$lib/server/wbd/auth';
 
-export const POST: RequestHandler = async ({ request, platform }) => {
+export const POST: RequestHandler = async ({ request, cookies, platform }) => {
+	const actor = requireRole(cookies, ['coordinator', 'admin']);
+
 	const body = await request.json().catch(() => null);
-	if (!body || typeof body.title !== 'string' || typeof body.created_by !== 'string') {
-		error(400, 'title and created_by are required');
+	if (!body || typeof body.title !== 'string') {
+		error(400, 'title is required');
 	}
-	const { title, description, max_rounds, assumptions, created_by } = body as {
+	const { title, description, max_rounds, assumptions } = body as {
 		title: string;
 		description?: string;
 		max_rounds?: number;
 		assumptions?: string;
-		created_by: string;
 	};
 
 	const db = platform!.env.DB;
 	try {
+		// created_by is always the signed-in actor, never a client-supplied value — otherwise
+		// anyone could attribute a session to an arbitrary user id.
 		const result = await db
 			.prepare(
 				`INSERT INTO wbd_sessions (id, title, description, max_rounds, assumptions, created_by)
 				 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
 				 RETURNING *`
 			)
-			.bind(generateId(), title, description ?? null, max_rounds ?? 3, assumptions ?? null, created_by)
+			.bind(generateId(), title, description ?? null, max_rounds ?? 3, assumptions ?? null, actor.id)
 			.first<{ id: string }>();
 
 		await recordAuditEvent(db, {
-			actorUserId: created_by,
+			actorUserId: actor.id,
 			sessionId: result!.id,
 			action: 'session_created',
 			entityType: 'session',
@@ -54,9 +58,13 @@ const LIST_SQL = `
 	FROM wbd_sessions s
 `;
 
-export const GET: RequestHandler = async ({ url, platform }) => {
-	const createdBy = url.searchParams.get('created_by');
+export const GET: RequestHandler = async ({ url, cookies, platform }) => {
+	const actor = requireRole(cookies, ['coordinator', 'admin']);
 	const db = platform!.env.DB;
+
+	// Coordinators only ever see their own sessions, regardless of what ?created_by= says.
+	// Admins may pass ?created_by= to filter, or omit it to see every session.
+	const createdBy = actor.role === 'admin' ? url.searchParams.get('created_by') : actor.id;
 	const stmt = createdBy
 		? db.prepare(`${LIST_SQL} WHERE s.created_by = ?1 ORDER BY s.created_at DESC`).bind(createdBy)
 		: db.prepare(`${LIST_SQL} ORDER BY s.created_at DESC`);

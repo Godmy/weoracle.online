@@ -1,12 +1,15 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId, mapD1Error, nowIso } from '$lib/server/wbd/db';
+import { isExpertOnQuestion, requireQuestionAccess } from '$lib/server/wbd/auth';
 
-export const GET: RequestHandler = async ({ params, url, platform }) => {
+export const GET: RequestHandler = async ({ params, url, cookies, platform }) => {
 	const round = url.searchParams.get('round');
 	if (!round) error(400, 'round query param is required');
 
 	const db = platform!.env.DB;
+	await requireQuestionAccess(cookies, db, params.id, url.searchParams.get('expert_token'));
+
 	const { results } = await db
 		.prepare(`SELECT * FROM wbd_answers WHERE question_id = ?1 AND round_number = ?2`)
 		.bind(params.id, round)
@@ -32,16 +35,9 @@ export const POST: RequestHandler = async ({ params, request, platform }) => {
 
 	const db = platform!.env.DB;
 
-	// Verify the expert token actually belongs to the session that owns this question.
-	const membership = await db
-		.prepare(
-			`SELECT 1 FROM wbd_session_experts se
-			 JOIN wbd_questions q ON q.session_id = se.session_id
-			 WHERE se.token = ?1 AND q.id = ?2`
-		)
-		.bind(expert_token, params.id)
-		.first();
-	if (!membership) error(403, 'Token is not an expert on this question’s session');
+	if (!(await isExpertOnQuestion(db, params.id, expert_token))) {
+		error(403, 'Token is not an expert on this question’s session');
+	}
 
 	try {
 		const now = nowIso();

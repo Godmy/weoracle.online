@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { EXPERTS_BY_SESSION_SQL } from '$lib/server/wbd/db';
+import { requireSessionOwner } from '$lib/server/wbd/auth';
 
 interface AnswerRow {
 	id: string;
@@ -21,11 +22,13 @@ interface AnswerRow {
  * the round (grouped by question), and any stored snapshot per question. Saves the dashboard
  * from N+1 fetching one endpoint per question.
  */
-export const GET: RequestHandler = async ({ params, url, platform }) => {
+export const GET: RequestHandler = async ({ params, url, cookies, platform }) => {
 	const round = url.searchParams.get('round');
 	if (!round) error(400, 'round query param is required');
 
 	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const session = await db.prepare(`SELECT * FROM wbd_sessions WHERE id = ?1`).bind(params.id).first();
 	if (!session) error(404, 'Session not found');
 

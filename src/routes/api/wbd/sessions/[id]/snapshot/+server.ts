@@ -2,12 +2,15 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId } from '$lib/server/wbd/db';
 import { computeRoundStats } from '$lib/server/wbd/stats';
+import { requireSessionOwner } from '$lib/server/wbd/auth';
 
-export const GET: RequestHandler = async ({ params, url, platform }) => {
+export const GET: RequestHandler = async ({ params, url, cookies, platform }) => {
 	const round = url.searchParams.get('round');
 	if (!round) error(400, 'round query param is required');
 
 	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const { results } = await db
 		.prepare(`SELECT * FROM wbd_round_snapshots WHERE session_id = ?1 AND round_number = ?2`)
 		.bind(params.id, round)
@@ -16,14 +19,16 @@ export const GET: RequestHandler = async ({ params, url, platform }) => {
 };
 
 /** Computes median/quartile/consensus stats for every question in the session for one round, and stores them. */
-export const POST: RequestHandler = async ({ params, request, platform }) => {
+export const POST: RequestHandler = async ({ params, request, cookies, platform }) => {
+	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body.round_number !== 'number') {
 		error(400, 'round_number is required');
 	}
 	const { round_number } = body as { round_number: number };
 
-	const db = platform!.env.DB;
 	const { results: questions } = await db
 		.prepare(`SELECT id FROM wbd_questions WHERE session_id = ?1`)
 		.bind(params.id)

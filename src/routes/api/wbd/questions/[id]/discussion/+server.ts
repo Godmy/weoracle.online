@@ -1,12 +1,15 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId, mapD1Error } from '$lib/server/wbd/db';
+import { requireQuestionAccess } from '$lib/server/wbd/auth';
 
-export const GET: RequestHandler = async ({ params, url, platform }) => {
+export const GET: RequestHandler = async ({ params, url, cookies, platform }) => {
 	const round = url.searchParams.get('round');
 	if (!round) error(400, 'round query param is required');
 
 	const db = platform!.env.DB;
+	await requireQuestionAccess(cookies, db, params.id, url.searchParams.get('expert_token'));
+
 	const { results } = await db
 		.prepare(
 			`SELECT * FROM wbd_discussion_messages WHERE question_id = ?1 AND round_number = ?2 ORDER BY created_at`

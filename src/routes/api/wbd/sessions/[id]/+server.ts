@@ -1,14 +1,16 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { EXPERTS_BY_SESSION_SQL, mapD1Error, nowIso } from '$lib/server/wbd/db';
-import { getSessionUser } from '$lib/server/wbd/auth';
+import { requireSessionOwner } from '$lib/server/wbd/auth';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
 
 const STATUSES = ['draft', 'active', 'round_1', 'round_2', 'round_3', 'completed'] as const;
 const PATCHABLE_COLUMNS = new Set(['status', 'current_round', 'assumptions', 'started_at', 'completed_at']);
 
-export const GET: RequestHandler = async ({ params, platform }) => {
+export const GET: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const session = await db.prepare(`SELECT * FROM wbd_sessions WHERE id = ?1`).bind(params.id).first();
 	if (!session) error(404, 'Session not found');
 
@@ -23,7 +25,10 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 	return json({ ...session, questions, experts });
 };
 
-export const PATCH: RequestHandler = async ({ params, request, platform }) => {
+export const PATCH: RequestHandler = async ({ params, request, cookies, platform }) => {
+	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body !== 'object') error(400, 'Invalid body');
 
@@ -39,7 +44,6 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 	const setClause = entries.map(([key], i) => `${key} = ?${i + 1}`).join(', ');
 	const values = entries.map(([, value]) => value);
 
-	const db = platform!.env.DB;
 	try {
 		const result = await db
 			.prepare(`UPDATE wbd_sessions SET ${setClause} WHERE id = ?${entries.length + 1} RETURNING *`)
@@ -56,6 +60,8 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 // Convenience: advance a session into the next round, or mark completed once max_rounds is reached.
 export const POST: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
+	const actor = await requireSessionOwner(cookies, db, params.id);
+
 	const session = await db
 		.prepare(`SELECT current_round, max_rounds FROM wbd_sessions WHERE id = ?1`)
 		.bind(params.id)
@@ -80,9 +86,8 @@ export const POST: RequestHandler = async ({ params, cookies, platform }) => {
 		.bind(completed ? session.max_rounds : nextRound, status, nowIso(), completed ? nowIso() : null, params.id)
 		.first();
 
-	const actor = getSessionUser(cookies);
 	await recordAuditEvent(db, {
-		actorUserId: actor?.id ?? null,
+		actorUserId: actor.id,
 		sessionId: params.id,
 		action: completed ? 'session_completed' : 'round_advanced',
 		entityType: 'round',

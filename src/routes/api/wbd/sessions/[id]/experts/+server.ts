@@ -1,17 +1,22 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { EXPERTS_BY_SESSION_SQL, generateId, generateToken, mapD1Error } from '$lib/server/wbd/db';
-import { getSessionUser } from '$lib/server/wbd/auth';
+import { requireSessionOwner } from '$lib/server/wbd/auth';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
 
-export const GET: RequestHandler = async ({ params, platform }) => {
+export const GET: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
+	await requireSessionOwner(cookies, db, params.id);
+
 	const { results } = await db.prepare(EXPERTS_BY_SESSION_SQL).bind(params.id).all();
 	return json(results);
 };
 
 /** Invites an expert: get-or-creates their user record, then adds them to the session with a fresh invite token. */
 export const POST: RequestHandler = async ({ params, request, cookies, platform }) => {
+	const db = platform!.env.DB;
+	const actor = await requireSessionOwner(cookies, db, params.id);
+
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body.email !== 'string' || !body.email.trim()) {
 		error(400, 'email is required');
@@ -23,7 +28,6 @@ export const POST: RequestHandler = async ({ params, request, cookies, platform 
 		alias?: string;
 	};
 
-	const db = platform!.env.DB;
 	try {
 		const user = await db
 			.prepare(
@@ -49,9 +53,8 @@ export const POST: RequestHandler = async ({ params, request, cookies, platform 
 			.bind(generateId(), params.id, user!.id, generateToken(), alias?.trim() || `Expert ${(existingCount?.n ?? 0) + 1}`)
 			.first<{ id: string }>();
 
-		const actor = getSessionUser(cookies);
 		await recordAuditEvent(db, {
-			actorUserId: actor?.id ?? null,
+			actorUserId: actor.id,
 			sessionId: params.id,
 			action: 'expert_invited',
 			entityType: 'session_expert',

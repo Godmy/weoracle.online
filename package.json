@@ -17,7 +17,6 @@
 		"deploy": "vite build && wrangler deploy"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^5.20260730.1",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.43.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.0",
@@ -28,7 +27,7 @@
 		"svelte-check": "^4.3.2",
 		"typescript": "^5.9.2",
 		"vite": "^7.1.7",
-		"wrangler": "^4.115.0"
+		"wrangler": "^4.118.0"
 	},
 	"dependencies": {
 		"stylist-svelte": "workspace:*"

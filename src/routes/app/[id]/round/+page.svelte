@@ -1,10 +1,12 @@
 <script lang="ts">
 	import {
+		ConfidenceDistributionChart,
 		ConsensusReviewBoard,
 		DisagreementPromptCard,
 		DiscussionMessageThread,
 		ExportResultsPanel,
 		RationaleDigest,
+		ResponseDistributionChart,
 		RoundSnapshotBoard
 	} from 'stylist-svelte';
 	import { toStructDiscussionMessage } from '$lib/wbd/map';
@@ -36,6 +38,40 @@
 		})
 	);
 	const disagreements = $derived(consensusItems.filter((item) => item.consensusLevel === 'low'));
+
+	let selectedQuestionId = $state('');
+
+	const confidenceDistribution = $derived.by(() => {
+		const counts = new Map<number, number>([1, 2, 3, 4, 5].map((c) => [c, 0]));
+		for (const answers of Object.values(data.roundView.answersByQuestion)) {
+			for (const answer of answers) {
+				if (answer.confidence != null) counts.set(answer.confidence, (counts.get(answer.confidence) ?? 0) + 1);
+			}
+		}
+		return [1, 2, 3, 4, 5].map((confidence) => ({ confidence: confidence as 1 | 2 | 3 | 4 | 5, count: counts.get(confidence) ?? 0 }));
+	});
+
+	const selectedQuestionResponseBins = $derived.by(() => {
+		const answers = data.roundView.answersByQuestion[selectedQuestionId] ?? [];
+		const values = answers.map((a) => a.realistic).filter((v): v is number => v != null);
+		if (values.length === 0) return [];
+
+		const min = Math.min(...values);
+		const max = Math.max(...values);
+		if (min === max) return [{ label: `${min}`, count: values.length }];
+
+		const bucketCount = 5;
+		const width = (max - min) / bucketCount;
+		const bins = Array.from({ length: bucketCount }, (_, i) => ({
+			label: `${(min + i * width).toFixed(1)}–${(min + (i + 1) * width).toFixed(1)}`,
+			count: 0
+		}));
+		for (const value of values) {
+			const index = Math.min(bucketCount - 1, Math.floor((value - min) / width));
+			bins[index].count += 1;
+		}
+		return bins;
+	});
 
 	const snapshots = $derived(
 		Object.values(data.roundView.snapshotByQuestion).filter((s): s is NonNullable<typeof s> => Boolean(s))
@@ -96,7 +132,6 @@
 		}
 	}
 
-	let selectedQuestionId = $state('');
 	let discussionMessages = $state<WbdDiscussionMessageRow[]>([]);
 	$effect(() => {
 		if (!selectedQuestionId) {
@@ -164,7 +199,12 @@
 {/if}
 
 <section>
-	<h2>Discussion</h2>
+	<h2>Confidence distribution</h2>
+	<ConfidenceDistributionChart items={confidenceDistribution} />
+</section>
+
+<section>
+	<h2>Discussion &amp; response distribution</h2>
 	<select bind:value={selectedQuestionId}>
 		<option value="">Select a question…</option>
 		{#each data.roundView.questions as question (question.id)}
@@ -172,6 +212,9 @@
 		{/each}
 	</select>
 	{#if selectedQuestionId}
+		{#if selectedQuestionResponseBins.length > 0}
+			<ResponseDistributionChart bins={selectedQuestionResponseBins} title="Realistic estimates" />
+		{/if}
 		<DiscussionMessageThread messages={discussionMessages.map((m) => toStructDiscussionMessage(m))} />
 	{/if}
 </section>

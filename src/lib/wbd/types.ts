@@ -97,3 +97,25 @@ export interface WbdUser {
 	company: string | null;
 	role: 'coordinator' | 'expert' | 'admin';
 }
+
+export interface WbdUserRow {
+	id: string;
+	email: string;
+	name: string;
+	company: string | null;
+	role: 'coordinator' | 'expert' | 'admin';
+	created_at: string;
+}
+
+export interface WbdAuditLogRow {
+	id: string;
+	actor_user_id: string | null;
+	session_id: string | null;
+	action: string;
+	entity_type: 'user' | 'session' | 'session_expert' | 'question' | 'answer' | 'round' | 'discussion' | 'report' | 'system';
+	entity_id: string | null;
+	metadata_json: string | null;
+	created_at: string;
+	actor_name?: string | null;
+	actor_email?: string | null;
+}

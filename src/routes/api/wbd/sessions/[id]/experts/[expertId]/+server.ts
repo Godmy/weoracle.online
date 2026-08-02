@@ -1,14 +1,26 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateToken } from '$lib/server/wbd/db';
+import { getSessionUser } from '$lib/server/wbd/auth';
+import { recordAuditEvent } from '$lib/server/wbd/audit';
 
-export const DELETE: RequestHandler = async ({ params, platform }) => {
+export const DELETE: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
 	const result = await db
 		.prepare(`DELETE FROM wbd_session_experts WHERE id = ?1 AND session_id = ?2 RETURNING id`)
 		.bind(params.expertId, params.id)
 		.first();
 	if (!result) error(404, 'Expert not found on this session');
+
+	const actor = getSessionUser(cookies);
+	await recordAuditEvent(db, {
+		actorUserId: actor?.id ?? null,
+		sessionId: params.id,
+		action: 'expert_removed',
+		entityType: 'session_expert',
+		entityId: params.expertId
+	});
+
 	return json({ id: params.expertId });
 };
 

@@ -133,6 +133,7 @@
 			<a class="wbd-round-link" href={`/app/${data.session.id}/round?round=${data.session.current_round}`}>
 				View round {data.session.current_round} results &rarr;
 			</a>
+			<a class="wbd-round-link" href={`/app/${data.session.id}/analytics`}>View analytics &rarr;</a>
 		{/if}
 	{/snippet}
 

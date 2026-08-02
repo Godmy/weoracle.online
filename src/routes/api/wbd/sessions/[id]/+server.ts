@@ -1,6 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { EXPERTS_BY_SESSION_SQL, mapD1Error, nowIso } from '$lib/server/wbd/db';
+import { getSessionUser } from '$lib/server/wbd/auth';
+import { recordAuditEvent } from '$lib/server/wbd/audit';
 
 const STATUSES = ['draft', 'active', 'round_1', 'round_2', 'round_3', 'completed'] as const;
 const PATCHABLE_COLUMNS = new Set(['status', 'current_round', 'assumptions', 'started_at', 'completed_at']);
@@ -52,7 +54,7 @@ export const PATCH: RequestHandler = async ({ params, request, platform }) => {
 };
 
 // Convenience: advance a session into the next round, or mark completed once max_rounds is reached.
-export const POST: RequestHandler = async ({ params, platform }) => {
+export const POST: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
 	const session = await db
 		.prepare(`SELECT current_round, max_rounds FROM wbd_sessions WHERE id = ?1`)
@@ -77,5 +79,16 @@ export const POST: RequestHandler = async ({ params, platform }) => {
 		)
 		.bind(completed ? session.max_rounds : nextRound, status, nowIso(), completed ? nowIso() : null, params.id)
 		.first();
+
+	const actor = getSessionUser(cookies);
+	await recordAuditEvent(db, {
+		actorUserId: actor?.id ?? null,
+		sessionId: params.id,
+		action: completed ? 'session_completed' : 'round_advanced',
+		entityType: 'round',
+		entityId: params.id,
+		metadata: { round: completed ? session.max_rounds : nextRound }
+	});
+
 	return json(result);
 };

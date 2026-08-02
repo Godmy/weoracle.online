@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId, mapD1Error } from '$lib/server/wbd/db';
+import { recordAuditEvent } from '$lib/server/wbd/audit';
 
 export const POST: RequestHandler = async ({ request, platform }) => {
 	const body = await request.json().catch(() => null);
@@ -24,7 +25,17 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 				 RETURNING *`
 			)
 			.bind(generateId(), title, description ?? null, max_rounds ?? 3, assumptions ?? null, created_by)
-			.first();
+			.first<{ id: string }>();
+
+		await recordAuditEvent(db, {
+			actorUserId: created_by,
+			sessionId: result!.id,
+			action: 'session_created',
+			entityType: 'session',
+			entityId: result!.id,
+			metadata: { title }
+		});
+
 		return json(result, { status: 201 });
 	} catch (err) {
 		const { status, message } = mapD1Error(err);

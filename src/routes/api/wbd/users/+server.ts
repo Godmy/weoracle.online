@@ -1,8 +1,19 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { generateId, mapD1Error } from '$lib/server/wbd/db';
+import { requireRole } from '$lib/server/wbd/auth';
 
 const ROLES = ['coordinator', 'expert', 'admin'] as const;
+
+export const GET: RequestHandler = async ({ cookies, platform }) => {
+	requireRole(cookies, ['admin']);
+
+	const db = platform!.env.DB;
+	const { results } = await db
+		.prepare(`SELECT id, email, name, company, role, created_at FROM wbd_users ORDER BY created_at`)
+		.all();
+	return json(results);
+};
 
 /** Get-or-create a user by email — the app has no login flow yet, this is the identity entry point. */
 export const POST: RequestHandler = async ({ request, platform }) => {

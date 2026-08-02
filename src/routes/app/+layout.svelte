@@ -10,6 +10,9 @@
 			<header class="wbd-app__bar">
 				<a href="/app" class="wbd-app__brand">WeOracle</a>
 				<div class="wbd-app__account">
+					{#if data.user.role === 'admin'}
+						<a href="/app/admin">Admin</a>
+					{/if}
 					<span>{data.user.name}</span>
 					<form method="POST" action="/app/sign-in?/signOut">
 						<button type="submit">Sign out</button>

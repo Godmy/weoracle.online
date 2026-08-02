@@ -1,3 +1,10 @@
+// `platform.env.*` bindings (D1Database, KVNamespace, R2Bucket, SendEmail, ...) are accessed
+// untyped (or via small local structural interfaces, e.g. KVLike in magic-link.ts) rather than
+// importing the real ambient types. Both `@cloudflare/workers-types` and including
+// `worker-configuration.d.ts` in the TS program redeclare global `Request`/`Response`/etc. in a
+// way that conflicts with lib.dom, making `request.json()` untypeable across the whole app
+// (see git history around removing `@cloudflare/workers-types`). Don't reintroduce either.
+
 export function generateId(): string {
 	return crypto.randomUUID();
 }

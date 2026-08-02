@@ -1,8 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import type { WbdUser } from '$lib/wbd/types';
+import { createMagicLinkToken, magicLinkEmailHtml, magicLinkEmailText } from '$lib/server/wbd/magic-link';
 
 const COOKIE = 'wbd_user';
+const FROM = { email: 'login@weoracle.online', name: 'WeOracle' };
 
 export const load: PageServerLoad = ({ cookies, url }) => {
 	if (cookies.get(COOKIE)) {
@@ -12,7 +13,7 @@ export const load: PageServerLoad = ({ cookies, url }) => {
 };
 
 export const actions: Actions = {
-	signIn: async ({ request, fetch, cookies, url }) => {
+	requestLink: async ({ request, url, platform }) => {
 		const form = await request.formData();
 		const email = String(form.get('email') ?? '').trim();
 		const name = String(form.get('name') ?? '').trim();
@@ -20,18 +21,18 @@ export const actions: Actions = {
 			return fail(400, { message: 'Email and name are required' });
 		}
 
-		const res = await fetch('/api/wbd/users', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ email, name, role: 'coordinator' })
-		});
-		if (!res.ok) {
-			return fail(res.status, { message: 'Could not sign in' });
-		}
-		const user = (await res.json()) as WbdUser;
+		const token = await createMagicLinkToken(platform!.env.KV, { email, name });
+		const link = `${url.origin}/app/verify?token=${token}${url.searchParams.get('next') ? `&next=${encodeURIComponent(url.searchParams.get('next')!)}` : ''}`;
 
-		cookies.set(COOKIE, JSON.stringify(user), { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 30 });
-		redirect(303, url.searchParams.get('next') || '/app');
+		await platform!.env.EMAIL.send({
+			to: email,
+			from: FROM,
+			subject: 'Sign in to WeOracle',
+			html: magicLinkEmailHtml(link),
+			text: magicLinkEmailText(link)
+		});
+
+		return { sent: true, email };
 	},
 
 	signOut: ({ cookies }) => {

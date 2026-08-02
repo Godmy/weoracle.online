@@ -8,22 +8,29 @@
 </svelte:head>
 
 <div class="wbd-sign-in">
-	<form method="POST" action="?/signIn" class="wbd-sign-in__form">
-		<h1>WeOracle</h1>
-		<p>Sign in to run Wideband Delphi estimation sessions.</p>
-		{#if form?.message}
-			<p class="wbd-sign-in__error">{form.message}</p>
-		{/if}
-		<label>
-			<span>Name</span>
-			<input name="name" type="text" required autocomplete="name" />
-		</label>
-		<label>
-			<span>Email</span>
-			<input name="email" type="email" required autocomplete="email" />
-		</label>
-		<button type="submit">Continue</button>
-	</form>
+	{#if form?.sent}
+		<div class="wbd-sign-in__form">
+			<h1>Check your email</h1>
+			<p>We sent a sign-in link to <strong>{form.email}</strong>. It expires in 15 minutes.</p>
+		</div>
+	{:else}
+		<form method="POST" action="?/requestLink" class="wbd-sign-in__form">
+			<h1>WeOracle</h1>
+			<p>Sign in to run Wideband Delphi estimation sessions. We'll email you a one-time sign-in link — no password.</p>
+			{#if form?.message}
+				<p class="wbd-sign-in__error">{form.message}</p>
+			{/if}
+			<label>
+				<span>Name</span>
+				<input name="name" type="text" required autocomplete="name" />
+			</label>
+			<label>
+				<span>Email</span>
+				<input name="email" type="email" required autocomplete="email" />
+			</label>
+			<button type="submit">Send sign-in link</button>
+		</form>
+	{/if}
 </div>
 
 <style>

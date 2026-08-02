@@ -27,5 +27,6 @@
 	],
 	"r2_buckets": [
 		{ "binding": "BUCKET", "bucket_name": "weoracle-online" }
-	]
+	],
+	"send_email": [{ "name": "EMAIL" }]
 }

@@ -1,0 +1,36 @@
+{
+	"name": "weoracle-online",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"packageManager": "yarn@4.6.0",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"format": "prettier --write .",
+		"lint": "prettier --check .",
+		"cf-typegen": "wrangler types",
+		"deploy": "vite build && wrangler deploy"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260730.1",
+		"@sveltejs/adapter-cloudflare": "^7.2.9",
+		"@sveltejs/kit": "^2.43.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.0",
+		"@types/node": "^22.0.0",
+		"prettier": "^3.6.2",
+		"prettier-plugin-svelte": "^3.4.0",
+		"svelte": "^5.39.5",
+		"svelte-check": "^4.3.2",
+		"typescript": "^5.9.2",
+		"vite": "^7.1.7",
+		"wrangler": "^4.115.0"
+	},
+	"dependencies": {
+		"stylist-svelte": "workspace:*"
+	}
+}

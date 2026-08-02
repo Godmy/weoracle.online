@@ -19,7 +19,10 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 	}
 
 	const [session, { results: questions }] = await Promise.all([
-		db.prepare(`SELECT * FROM wbd_sessions WHERE id = ?1`).bind(expert.session_id).first(),
+		db
+			.prepare(`SELECT * FROM wbd_sessions WHERE id = ?1`)
+			.bind(expert.session_id)
+			.first<{ current_round: number }>(),
 		db
 			.prepare(`SELECT * FROM wbd_questions WHERE session_id = ?1 ORDER BY order_index`)
 			.bind(expert.session_id)
@@ -27,5 +30,10 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 	]);
 	if (!session) error(404, 'Session not found');
 
-	return json({ expert: { id: expert.id, alias: expert.alias }, session, questions });
+	const { results: answers } = await db
+		.prepare(`SELECT * FROM wbd_answers WHERE expert_token = ?1 AND round_number = ?2`)
+		.bind(params.token, session.current_round)
+		.all();
+
+	return json({ expert: { id: expert.id, alias: expert.alias }, session, questions, answers });
 };

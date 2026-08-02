@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { mapD1Error, nowIso } from '$lib/server/wbd/db';
+import { EXPERTS_BY_SESSION_SQL, mapD1Error, nowIso } from '$lib/server/wbd/db';
 
 const STATUSES = ['draft', 'active', 'round_1', 'round_2', 'round_3', 'completed'] as const;
 const PATCHABLE_COLUMNS = new Set(['status', 'current_round', 'assumptions', 'started_at', 'completed_at']);
@@ -15,12 +15,7 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 			.prepare(`SELECT * FROM wbd_questions WHERE session_id = ?1 ORDER BY order_index`)
 			.bind(params.id)
 			.all(),
-		db
-			.prepare(
-				`SELECT id, user_id, token, alias, invited_at, joined_at FROM wbd_session_experts WHERE session_id = ?1 ORDER BY invited_at`
-			)
-			.bind(params.id)
-			.all()
+		db.prepare(EXPERTS_BY_SESSION_SQL).bind(params.id).all()
 	]);
 
 	return json({ ...session, questions, experts });

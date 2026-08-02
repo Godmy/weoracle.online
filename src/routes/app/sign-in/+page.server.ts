@@ -35,7 +35,11 @@ export const actions: Actions = {
 				html: magicLinkEmailHtml(link),
 				text: magicLinkEmailText(link)
 			});
-		} catch {
+		} catch (err) {
+			// Surface the real Resend error in `wrangler tail` — the message returned to the
+			// client is intentionally generic, but the cause (e.g. unverified sending domain)
+			// should be visible in logs without re-deriving it via a side-channel request.
+			console.error('sendEmailViaResend failed:', err);
 			return fail(502, { message: 'Could not send the sign-in email — please try again' });
 		}
 

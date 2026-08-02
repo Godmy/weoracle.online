@@ -15,6 +15,7 @@
 	const session = $derived(toStructSession(data.session));
 	const questions = $derived(data.session.questions.map(toStructQuestion));
 	const experts = $derived(data.session.experts.map(toStructExpert));
+	let selectedQuestionId = $state(data.session.questions[0]?.id ?? '');
 
 	const actions = $derived.by(() => {
 		const s = data.session;
@@ -62,11 +63,13 @@
 	}
 
 	async function createQuestion() {
-		await fetch(`/api/wbd/sessions/${data.session.id}/questions`, {
+		const res = await fetch(`/api/wbd/sessions/${data.session.id}/questions`, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ text: 'New question', type: 'numeric' })
 		});
+		const created = (await res.json()) as { id?: string };
+		if (created.id) selectedQuestionId = created.id;
 		await invalidateAll();
 	}
 
@@ -80,6 +83,8 @@
 	}
 
 	async function deleteQuestion(questionId: string) {
+		const remaining = data.session.questions.filter((question) => question.id !== questionId);
+		if (selectedQuestionId === questionId) selectedQuestionId = remaining[0]?.id ?? '';
 		await fetch(`/api/wbd/questions/${questionId}`, { method: 'DELETE' });
 		await invalidateAll();
 	}
@@ -134,7 +139,14 @@
 	<div class="wbd-session-body">
 		<section>
 			<h2>Questions</h2>
-			<SessionQuestionEditor {questions} onCreateQuestion={createQuestion} onUpdateQuestion={updateQuestion} onDeleteQuestion={deleteQuestion} />
+			<SessionQuestionEditor
+				{questions}
+				{selectedQuestionId}
+				onSelectQuestion={(questionId) => (selectedQuestionId = questionId)}
+				onCreateQuestion={createQuestion}
+				onUpdateQuestion={updateQuestion}
+				onDeleteQuestion={deleteQuestion}
+			/>
 		</section>
 
 		<section>

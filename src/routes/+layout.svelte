@@ -8,6 +8,6 @@
 	<title>WeOracle</title>
 </svelte:head>
 
-<ThemeProvider theme-mode="light">
+<ThemeProvider themeMode="default">
 	{@render children()}
 </ThemeProvider>

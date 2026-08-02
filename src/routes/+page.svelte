@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { Heading, Link, Text, ThemeModeToggle } from 'stylist-svelte';
+</script>
+
 <svelte:head>
 	<title>WeOracle</title>
 	<meta
@@ -9,43 +13,46 @@
 <main class="home">
 	<section class="home__hero">
 		<nav class="home__nav" aria-label="Primary">
-			<a class="home__brand" href="/">WeOracle</a>
+			<Link class="home__brand" href="/" tone="tertiary">WeOracle</Link>
 			<div>
-				<a href="/app/sign-in">Sign in</a>
-				<a href="/app">Sessions</a>
+				<Link href="/app/sign-in" tone="tertiary">Sign in</Link>
+				<Link href="/app" tone="tertiary">Sessions</Link>
+				<ThemeModeToggle />
 			</div>
 		</nav>
 
 		<div class="home__content">
 			<div class="home__copy">
-				<span>Wideband Delphi</span>
-				<h1>Anonymous expert consensus for decisions that need judgment.</h1>
-				<p>
+				<Text class="home__eyebrow" text="Wideband Delphi" />
+				<Heading level={1} class="home__title">
+					Anonymous expert consensus for decisions that need judgment.
+				</Heading>
+				<Text class="home__lead" block>
 					Create a session, invite experts, collect three-point estimates, discuss disagreements by alias,
 					and publish round-by-round consensus results.
-				</p>
+				</Text>
 				<div class="home__actions">
-					<a class="home__primary" href="/app">Open sessions</a>
-					<a href="/app/new">Create session</a>
+					<Link class="home__primary" href="/app">Open sessions</Link>
+					<Link href="/app/new" tone="tertiary">Create session</Link>
 				</div>
 			</div>
 
 			<div class="home__panel" aria-label="Wideband Delphi flow">
 				<div>
-					<strong>01</strong>
-					<span>Define questions</span>
+					<Text class="home__step" text="01" />
+					<Text text="Define questions" />
 				</div>
 				<div>
-					<strong>02</strong>
-					<span>Invite experts</span>
+					<Text class="home__step" text="02" />
+					<Text text="Invite experts" />
 				</div>
 				<div>
-					<strong>03</strong>
-					<span>Collect anonymous estimates</span>
+					<Text class="home__step" text="03" />
+					<Text text="Collect anonymous estimates" />
 				</div>
 				<div>
-					<strong>04</strong>
-					<span>Review consensus</span>
+					<Text class="home__step" text="04" />
+					<Text text="Review consensus" />
 				</div>
 			</div>
 		</div>
@@ -53,16 +60,16 @@
 
 	<section class="home__metrics">
 		<article>
-			<strong>Roles</strong>
-			<span>coordinator, expert, admin</span>
+			<Text class="home__metric-title" text="Roles" />
+			<Text text="coordinator, expert, admin" />
 		</article>
 		<article>
-			<strong>Rounds</strong>
-			<span>draft, active, snapshots, final report</span>
+			<Text class="home__metric-title" text="Rounds" />
+			<Text text="draft, active, snapshots, final report" />
 		</article>
 		<article>
-			<strong>Privacy</strong>
-			<span>expert aliases stay separate from identity</span>
+			<Text class="home__metric-title" text="Privacy" />
+			<Text text="expert aliases stay separate from identity" />
 		</article>
 	</section>
 </main>
@@ -85,15 +92,15 @@
 		justify-content: space-between;
 		gap: 1rem;
 	}
-	.home__brand,
-	.home__nav a,
-	.home__actions a {
+	:global(.home__brand),
+	.home__actions :global(.c-typography-link) {
 		font-weight: 700;
 		text-decoration: none;
 		color: inherit;
 	}
 	.home__nav div {
 		display: flex;
+		align-items: center;
 		gap: 0.75rem;
 		font-size: 0.875rem;
 		color: var(--color-text-secondary, #475569);
@@ -115,20 +122,18 @@
 		gap: 1rem;
 		max-width: 44rem;
 	}
-	.home__copy > span {
+	:global(.home__eyebrow) {
 		font-size: 0.75rem;
 		font-weight: 800;
 		text-transform: uppercase;
 		color: var(--color-primary-700, #1d4ed8);
 	}
-	.home__copy h1 {
-		margin: 0;
+	:global(.home__title) {
 		font-size: clamp(2rem, 5vw, 4.5rem);
 		line-height: 1;
 		letter-spacing: 0;
 	}
-	.home__copy p {
-		margin: 0;
+	:global(.home__lead) {
 		max-width: 38rem;
 		font-size: 1rem;
 		line-height: 1.7;
@@ -140,7 +145,7 @@
 		gap: 0.75rem;
 		margin-top: 0.5rem;
 	}
-	.home__actions a {
+	.home__actions :global(.c-typography-link) {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -150,7 +155,7 @@
 		border-radius: 0.375rem;
 		font-size: 0.875rem;
 	}
-	.home__actions .home__primary {
+	.home__actions :global(.home__primary) {
 		border-color: var(--color-primary-500, #3b82f6);
 		background: var(--color-primary-500, #3b82f6);
 		color: var(--color-text-inverse, #fff);
@@ -173,13 +178,14 @@
 		border-radius: 0.5rem;
 		background: var(--color-background-primary, #fff);
 	}
-	.home__panel strong,
-	.home__metrics strong {
+	:global(.home__step),
+	:global(.home__metric-title) {
 		font-size: 0.75rem;
+		font-weight: 800;
 		color: var(--color-primary-700, #1d4ed8);
 	}
-	.home__panel span,
-	.home__metrics span {
+	.home__panel :global(.c-typography-text:not(.home__step)),
+	.home__metrics :global(.c-typography-text:not(.home__metric-title)) {
 		font-size: 0.875rem;
 		color: var(--color-text-secondary, #475569);
 	}

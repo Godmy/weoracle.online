@@ -1,19 +1,20 @@
 <script lang="ts">
-	import { ThemeProvider } from 'stylist-svelte';
+	import { Link, Text, ThemeModeToggle, ThemeProvider } from 'stylist-svelte';
 
 	let { data, children } = $props();
 </script>
 
-<ThemeProvider theme-mode="light">
+<ThemeProvider themeMode="default">
 	<div class="wbd-app">
 		{#if data.user}
 			<header class="wbd-app__bar">
-				<a href="/app" class="wbd-app__brand">WeOracle</a>
+				<Link href="/app" class="wbd-app__brand" tone="tertiary">WeOracle</Link>
 				<div class="wbd-app__account">
 					{#if data.user.role === 'admin'}
-						<a href="/app/admin">Admin</a>
+						<Link href="/app/admin" tone="tertiary">Admin</Link>
 					{/if}
-					<span>{data.user.name}</span>
+					<Text text={data.user.name} />
+					<ThemeModeToggle />
 					<form method="POST" action="/app/sign-in?/signOut">
 						<button type="submit">Sign out</button>
 					</form>
@@ -31,6 +32,8 @@
 		min-height: 100vh;
 		display: flex;
 		flex-direction: column;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-primary, #0f172a);
 	}
 	.wbd-app__bar {
 		display: flex;
@@ -40,10 +43,8 @@
 		border-bottom: 1px solid var(--color-border-primary, #e2e8f0);
 		background: var(--color-background-primary, #fff);
 	}
-	.wbd-app__brand {
+	:global(.wbd-app__brand) {
 		font-weight: 700;
-		color: var(--color-text-primary, #0f172a);
-		text-decoration: none;
 	}
 	.wbd-app__account {
 		display: flex;

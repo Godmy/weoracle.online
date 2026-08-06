@@ -31,6 +31,8 @@ export function toStructSession(row: WbdSessionRow) {
 		id: row.id,
 		title: row.title,
 		description: row.description ?? undefined,
+		imageUrl: row.image_url ?? undefined,
+		isPublic: row.is_public === 1,
 		assumptions: row.assumptions ?? undefined,
 		status: row.status,
 		currentRound: row.current_round,

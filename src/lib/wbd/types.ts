@@ -4,6 +4,8 @@ export interface WbdSessionRow {
 	id: string;
 	title: string;
 	description: string | null;
+	image_url: string | null;
+	is_public: 0 | 1;
 	status: 'draft' | 'active' | 'round_1' | 'round_2' | 'round_3' | 'completed';
 	current_round: number;
 	max_rounds: number;

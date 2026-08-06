@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
+	import { t } from '$lib/i18n';
 	let { form }: { form: ActionData } = $props();
+
+	// Split around the placeholder ourselves so `form.email` stays plain-text-interpolated
+	// (Svelte-escaped) instead of going through `{@html}` with attacker-controllable input.
+	const checkEmailParts = $derived(t('signIn.check.body').split('{email}'));
 </script>
 
 <svelte:head>
@@ -10,25 +15,41 @@
 <div class="wbd-sign-in">
 	{#if form?.sent}
 		<div class="wbd-sign-in__form">
-			<h1>Check your email</h1>
-			<p>We sent a sign-in link to <strong>{form.email}</strong>. It expires in 15 minutes.</p>
+			<h1>{t('signIn.check.title')}</h1>
+			<p>{checkEmailParts[0]}<strong>{form.email}</strong>{checkEmailParts[1]}</p>
 		</div>
 	{:else}
 		<form method="POST" action="?/requestLink" class="wbd-sign-in__form">
-			<h1>WeOracle</h1>
-			<p>Sign in to run Wideband Delphi estimation sessions. We'll email you a one-time sign-in link — no password.</p>
+			<h1>{t('signIn.form.title')}</h1>
+			<p>{t('signIn.form.lead')}</p>
 			{#if form?.message}
 				<p class="wbd-sign-in__error">{form.message}</p>
 			{/if}
 			<label>
-				<span>Name</span>
+				<span>{t('signIn.form.nameLabel')}</span>
 				<input name="name" type="text" required autocomplete="name" />
 			</label>
 			<label>
-				<span>Email</span>
+				<span>{t('signIn.form.emailLabel')}</span>
 				<input name="email" type="email" required autocomplete="email" />
 			</label>
-			<button type="submit">Send sign-in link</button>
+			<button type="submit">{t('signIn.form.submit')}</button>
+		</form>
+		<form method="POST" action="?/adminSignIn" class="wbd-sign-in__form wbd-sign-in__form--admin">
+			<h2>{t('signIn.admin.title')}</h2>
+			<p>{t('signIn.admin.lead')}</p>
+			{#if form?.message}
+				<p class="wbd-sign-in__error">{form.message}</p>
+			{/if}
+			<label>
+				<span>{t('signIn.admin.emailLabel')}</span>
+				<input name="email" type="email" required autocomplete="username" />
+			</label>
+			<label>
+				<span>{t('signIn.admin.passwordLabel')}</span>
+				<input name="password" type="password" required autocomplete="current-password" />
+			</label>
+			<button type="submit">{t('signIn.admin.submit')}</button>
 		</form>
 	{/if}
 </div>
@@ -36,9 +57,11 @@
 <style>
 	.wbd-sign-in {
 		min-height: 100vh;
-		display: flex;
+		display: grid;
 		align-items: center;
 		justify-content: center;
+		grid-template-columns: repeat(2, minmax(0, 22rem));
+		gap: 1rem;
 		padding: 2rem;
 	}
 	.wbd-sign-in__form {
@@ -52,10 +75,17 @@
 		border-radius: 0.75rem;
 		background: var(--color-background-primary, #fff);
 	}
-	.wbd-sign-in__form h1 {
+	.wbd-sign-in__form--admin {
+		background: var(--color-background-secondary, #f8fafc);
+	}
+	.wbd-sign-in__form h1,
+	.wbd-sign-in__form h2 {
 		margin: 0;
 		font-size: 1.5rem;
 		color: var(--color-text-primary, #0f172a);
+	}
+	.wbd-sign-in__form h2 {
+		font-size: 1.125rem;
 	}
 	.wbd-sign-in__form p {
 		margin: 0;
@@ -90,5 +120,10 @@
 		color: #fff;
 		font-weight: 600;
 		cursor: pointer;
+	}
+	@media (max-width: 760px) {
+		.wbd-sign-in {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

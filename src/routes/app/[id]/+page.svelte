@@ -1,21 +1,56 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import {
 		RoundProgressMonitor,
-		SessionDetailLayout,
 		SessionExpertInvitePanel,
-		SessionLifecycleToolbar,
-		SessionQuestionEditor
+		SessionLifecycleToolbar
 	} from 'stylist-svelte';
-	import { toStructExpert, toStructQuestion, toStructSession } from '$lib/wbd/map';
-	import type { WbdRoundView } from '$lib/wbd/types';
+	import { toStructExpert, toStructSession } from '$lib/wbd/map';
+	import type { WbdRoundView, WbdSessionRow } from '$lib/wbd/types';
 
 	let { data } = $props();
 
-	const session = $derived(toStructSession(data.session));
-	const questions = $derived(data.session.questions.map(toStructQuestion));
+	let localSession = $state<WbdSessionRow>({ ...data.session });
+	const session = $derived(toStructSession(localSession));
 	const experts = $derived(data.session.experts.map(toStructExpert));
-	let selectedQuestionId = $state(data.session.questions[0]?.id ?? '');
+	let sessionSaving = $state(false);
+	let sessionMutating = $state(false);
+	let sessionSaveMessage = $state('');
+	let sessionSaveError = $state('');
+	let sessionMutationError = $state('');
+
+	$effect(() => {
+		localSession = { ...data.session };
+	});
+
+	async function saveSession() {
+		if (!localSession.title.trim() || sessionSaving) return;
+		sessionSaving = true;
+		sessionSaveMessage = '';
+		sessionSaveError = '';
+		try {
+			const res = await fetch(`/api/wbd/sessions/${data.session.id}`, {
+				method: 'PATCH',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({
+					title: localSession.title.trim(),
+					description: localSession.description?.trim() || null,
+					image_url: localSession.image_url?.trim() || null,
+					is_public: localSession.is_public === 1,
+					assumptions: localSession.assumptions?.trim() || null,
+					max_rounds: localSession.max_rounds
+				})
+			});
+			if (!res.ok) throw new Error(await res.text());
+			localSession = (await res.json()) as WbdSessionRow;
+			sessionSaveMessage = 'Session saved';
+			await invalidateAll();
+		} catch {
+			sessionSaveError = 'Could not save session';
+		} finally {
+			sessionSaving = false;
+		}
+	}
 
 	const actions = $derived.by(() => {
 		const s = data.session;
@@ -62,31 +97,50 @@
 		await invalidateAll();
 	}
 
-	async function createQuestion() {
-		const res = await fetch(`/api/wbd/sessions/${data.session.id}/questions`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ text: 'New question', type: 'numeric' })
-		});
-		const created = (await res.json()) as { id?: string };
-		if (created.id) selectedQuestionId = created.id;
-		await invalidateAll();
+	async function resetSession() {
+		if (sessionMutating) return;
+		if (
+			!window.confirm(
+				'Reset this session to draft? Answers, discussion messages, round snapshots, reports, and round settings will be removed.'
+			)
+		) {
+			return;
+		}
+
+		sessionMutating = true;
+		sessionMutationError = '';
+		try {
+			const res = await fetch(`/api/wbd/sessions/${data.session.id}/reset`, { method: 'POST' });
+			if (!res.ok) throw new Error(await res.text());
+			localSession = (await res.json()) as WbdSessionRow;
+			await invalidateAll();
+		} catch {
+			sessionMutationError = 'Could not reset session';
+		} finally {
+			sessionMutating = false;
+		}
 	}
 
-	async function updateQuestion(question: { id: string }) {
-		await fetch(`/api/wbd/questions/${question.id}`, {
-			method: 'PATCH',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify(question)
-		});
-		await invalidateAll();
-	}
+	async function deleteSession() {
+		if (sessionMutating) return;
+		if (
+			!window.confirm(
+				'Delete this session permanently? Questions, answers, discussion, experts, snapshots, reports, and audit entries will be removed.'
+			)
+		) {
+			return;
+		}
 
-	async function deleteQuestion(questionId: string) {
-		const remaining = data.session.questions.filter((question) => question.id !== questionId);
-		if (selectedQuestionId === questionId) selectedQuestionId = remaining[0]?.id ?? '';
-		await fetch(`/api/wbd/questions/${questionId}`, { method: 'DELETE' });
-		await invalidateAll();
+		sessionMutating = true;
+		sessionMutationError = '';
+		try {
+			const res = await fetch(`/api/wbd/sessions/${data.session.id}`, { method: 'DELETE' });
+			if (!res.ok) throw new Error(await res.text());
+			await goto('/app');
+		} catch {
+			sessionMutationError = 'Could not delete session';
+			sessionMutating = false;
+		}
 	}
 
 	async function inviteExpert(email: string) {
@@ -121,33 +175,114 @@
 	<title>{data.session.title} — WeOracle</title>
 </svelte:head>
 
-<a href="/app" class="wbd-back">&larr; Sessions</a>
-
-<SessionDetailLayout {session}>
-	{#snippet sidebar()}
-		<SessionLifecycleToolbar {session} {actions} onTriggerAction={triggerAction} />
-		{#if data.roundView}
-			<RoundProgressMonitor progress={computeProgress(data.roundView)} />
-		{/if}
-		{#if data.session.status !== 'draft'}
-			<a class="wbd-round-link" href={`/app/${data.session.id}/round?round=${data.session.current_round}`}>
-				View round {data.session.current_round} results &rarr;
-			</a>
-			<a class="wbd-round-link" href={`/app/${data.session.id}/analytics`}>View analytics &rarr;</a>
-		{/if}
-	{/snippet}
+<div class="wbd-session-page">
+	{#if session.description}
+		<p class="wbd-session-page__description">{session.description}</p>
+	{/if}
 
 	<div class="wbd-session-body">
-		<section>
-			<h2>Questions</h2>
-			<SessionQuestionEditor
-				{questions}
-				{selectedQuestionId}
-				onSelectQuestion={(questionId) => (selectedQuestionId = questionId)}
-				onCreateQuestion={createQuestion}
-				onUpdateQuestion={updateQuestion}
-				onDeleteQuestion={deleteQuestion}
-			/>
+		<section class="wbd-session-settings">
+			<h2>Session settings</h2>
+			<form
+				onsubmit={(event) => {
+					event.preventDefault();
+					void saveSession();
+				}}
+			>
+				<label>
+					<span>Title</span>
+					<input bind:value={localSession.title} required />
+				</label>
+				<label>
+					<span>Description</span>
+					<textarea bind:value={localSession.description} rows="3"></textarea>
+				</label>
+				<label>
+					<span>Image URL</span>
+					<input
+						value={localSession.image_url ?? ''}
+						placeholder="/gen/case-capex-project-estimation.png"
+						oninput={(event) => {
+							localSession.image_url = event.currentTarget.value;
+						}}
+					/>
+				</label>
+				<div class="wbd-session-settings__image-preview">
+					{#if localSession.image_url}
+						<img src={localSession.image_url} alt="" />
+						<button
+							type="button"
+							onclick={() => {
+								localSession.image_url = null;
+							}}>Remove image</button
+						>
+					{:else}
+						<span>Image preview</span>
+					{/if}
+				</div>
+				<label class="wbd-session-settings__checkbox">
+					<input
+						type="checkbox"
+						checked={localSession.is_public === 1}
+						onchange={(event) => {
+							localSession.is_public = event.currentTarget.checked ? 1 : 0;
+						}}
+					/>
+					<span>Public poll</span>
+					<small>{localSession.is_public === 1 ? 'Anyone with the public link can participate.' : 'Only invited experts can participate.'}</small>
+				</label>
+				<label>
+					<span>Shared assumptions</span>
+					<textarea bind:value={localSession.assumptions} rows="5"></textarea>
+				</label>
+				<label>
+					<span>Max rounds</span>
+					<input
+						type="number"
+						min={Math.max(1, localSession.current_round)}
+						value={localSession.max_rounds}
+						oninput={(event) => {
+							localSession.max_rounds = event.currentTarget.valueAsNumber;
+						}}
+					/>
+				</label>
+				<div class="wbd-session-settings__footer">
+					<button type="submit" disabled={sessionSaving || !localSession.title.trim()}>
+						{sessionSaving ? 'Saving...' : 'Save session'}
+					</button>
+					{#if sessionSaveMessage}
+						<span class="wbd-session-settings__success">{sessionSaveMessage}</span>
+					{/if}
+					{#if sessionSaveError}
+						<span class="wbd-session-settings__error">{sessionSaveError}</span>
+					{/if}
+				</div>
+			</form>
+			<div class="wbd-session-settings__management">
+				<span class="wbd-session-settings__status">{session.status}</span>
+				<SessionLifecycleToolbar {session} {actions} onTriggerAction={triggerAction} />
+				<a class="wbd-session-settings__secondary-link" href={`/app/questions?session=${data.session.id}`}>Edit questions</a>
+				<button type="button" disabled={sessionMutating} onclick={resetSession}>Reset to draft</button>
+				<button type="button" disabled={sessionMutating} onclick={deleteSession}>Delete session</button>
+				{#if sessionMutationError}
+					<span>{sessionMutationError}</span>
+				{/if}
+			</div>
+			{#if data.roundView || data.session.status !== 'draft'}
+				<div class="wbd-session-settings__progress">
+					{#if data.roundView}
+						<RoundProgressMonitor progress={computeProgress(data.roundView)} />
+					{/if}
+					{#if data.session.status !== 'draft'}
+						<div class="wbd-session-settings__links">
+							<a class="wbd-round-link" href={`/app/${data.session.id}/round?round=${data.session.current_round}`}>
+								View round {data.session.current_round} results &rarr;
+							</a>
+							<a class="wbd-round-link" href={`/app/${data.session.id}/analytics`}>View analytics &rarr;</a>
+						</div>
+					{/if}
+				</div>
+			{/if}
 		</section>
 
 		<section>
@@ -167,15 +302,19 @@
 			{/if}
 		</section>
 	</div>
-</SessionDetailLayout>
+</div>
 
 <style>
-	.wbd-back {
-		display: inline-block;
-		margin-bottom: 1rem;
-		font-size: 0.8125rem;
+	.wbd-session-page {
+		display: grid;
+		gap: 1rem;
+	}
+	.wbd-session-page__description {
+		margin: 0;
+		max-width: 52rem;
 		color: var(--color-text-tertiary, #64748b);
-		text-decoration: none;
+		font-size: 0.875rem;
+		line-height: 1.5;
 	}
 	.wbd-round-link {
 		display: block;
@@ -191,8 +330,192 @@
 	}
 	.wbd-session-body h2 {
 		margin: 0 0 0.75rem;
-		font-size: 1rem;
+		font-size: 0.875rem;
 		color: var(--color-text-primary, #0f172a);
+	}
+	.wbd-session-settings {
+		border: 1px solid var(--color-border-primary, #e2e8f0);
+		border-radius: 0.5rem;
+		background: var(--color-background-secondary, #f8fafc);
+		padding: 1rem;
+	}
+	.wbd-session-settings form {
+		display: grid;
+		gap: 0.875rem;
+	}
+	.wbd-session-settings label {
+		display: grid;
+		gap: 0.375rem;
+	}
+	.wbd-session-settings label span {
+		color: var(--color-text-secondary, #475569);
+		font-size: 0.8125rem;
+		font-weight: 700;
+	}
+	.wbd-session-settings input,
+	.wbd-session-settings textarea {
+		box-sizing: border-box;
+		width: 100%;
+		border: 1px solid var(--color-border-primary, #cbd5e1);
+		border-radius: 0.375rem;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-primary, #0f172a);
+		font: inherit;
+		font-size: 0.875rem;
+		padding: 0.625rem 0.75rem;
+	}
+	.wbd-session-settings textarea {
+		resize: vertical;
+	}
+	.wbd-session-settings__checkbox {
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: start;
+		column-gap: 0.625rem;
+	}
+	.wbd-session-settings__checkbox input {
+		width: 1rem;
+		margin-top: 0.125rem;
+		padding: 0;
+	}
+	.wbd-session-settings__checkbox small {
+		grid-column: 2;
+		color: var(--color-text-tertiary, #64748b);
+		font-size: 0.75rem;
+	}
+	.wbd-session-settings__image-preview {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 16 / 9;
+		border: 1px dashed var(--color-border-primary, #cbd5e1);
+		border-radius: 0.375rem;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-tertiary, #64748b);
+		font-size: 0.8125rem;
+		overflow: hidden;
+	}
+	.wbd-session-settings__image-preview img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.wbd-session-settings__image-preview button {
+		position: absolute;
+		right: 0.625rem;
+		bottom: 0.625rem;
+		min-height: 2rem;
+		padding: 0 0.625rem;
+		border: 1px solid var(--color-border-primary, #cbd5e1);
+		border-radius: 0.375rem;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-primary, #0f172a);
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.wbd-session-settings__footer {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+	.wbd-session-settings__footer button {
+		min-height: 2.25rem;
+		padding: 0 0.75rem;
+		border: 1px solid var(--color-primary-600, #2563eb);
+		border-radius: 0.375rem;
+		background: var(--color-primary-600, #2563eb);
+		color: var(--color-on-primary, #fff);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.wbd-session-settings__footer button:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.wbd-session-settings__management {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--color-border-primary, #e2e8f0);
+	}
+	.wbd-session-settings__status {
+		display: inline-flex;
+		align-items: center;
+		min-height: 2.25rem;
+		padding: 0 0.75rem;
+		border: 1px solid var(--color-border-primary, #cbd5e1);
+		border-radius: 999px;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-secondary, #475569);
+		font-size: 0.75rem;
+		font-weight: 800;
+		text-transform: uppercase;
+	}
+	.wbd-session-settings__management button {
+		min-height: 2.25rem;
+		padding: 0 0.75rem;
+		border: 1px solid var(--color-danger-600, #dc2626);
+		border-radius: 0.375rem;
+		background: transparent;
+		color: var(--color-danger-600, #dc2626);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.wbd-session-settings__secondary-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.25rem;
+		padding: 0 0.75rem;
+		border: 1px solid var(--color-border-primary, #cbd5e1);
+		border-radius: 0.375rem;
+		background: var(--color-background-primary, #fff);
+		color: var(--color-text-primary, #0f172a);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.wbd-session-settings__management button:last-of-type {
+		background: var(--color-danger-600, #dc2626);
+		color: var(--color-on-primary, #fff);
+	}
+	.wbd-session-settings__management button:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.wbd-session-settings__management span:not(.wbd-session-settings__status) {
+		color: var(--color-danger-600, #dc2626);
+		font-size: 0.8125rem;
+		font-weight: 700;
+	}
+	.wbd-session-settings__progress {
+		display: grid;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+	.wbd-session-settings__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+	.wbd-session-settings__success,
+	.wbd-session-settings__error {
+		font-size: 0.8125rem;
+		font-weight: 700;
+	}
+	.wbd-session-settings__success {
+		color: var(--color-success-700, #15803d);
+	}
+	.wbd-session-settings__error {
+		color: var(--color-danger-600, #dc2626);
 	}
 	.wbd-invite-links {
 		list-style: none;

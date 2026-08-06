@@ -1,209 +1,303 @@
 <script lang="ts">
-	import { Heading, Link, Text, ThemeModeToggle } from 'stylist-svelte';
+	import { page } from '$app/state';
+	import BrandLogo from '$lib/brand-logo.svelte';
+	import LanguageControl from '$lib/wbd/language-control.svelte';
+	import { WbdLandingPage, type LandingPageContent } from 'stylist-svelte';
+
+	const copy: Record<string, LandingPageContent> = {
+		ru: {
+			metaTitle: 'WeOracle — Wideband Delphi для управленческих решений',
+			metaDescription:
+				'WeOracle помогает собрать анонимный экспертный консенсус по CAPEX, технологиям, бюджету, контрактным ценам и промышленным графикам.',
+			nav: { cases: 'Кейсы', method: 'Метод', signIn: 'Войти' },
+			hero: {
+				eyebrow: 'Wideband Delphi platform',
+				title: 'Экспертный консенсус для решений, где ошибка стоит дорого',
+				lead: 'WeOracle собирает независимые оценки профильных экспертов, показывает расхождения и превращает неопределенность в диапазоны, приоритеты и решение для комитета.',
+				create: 'Создать сессию',
+				cases: 'Смотреть кейсы'
+			},
+			metrics: [
+				['3 раунда', 'достаточно, чтобы снять шум и увидеть устойчивый консенсус'],
+				['P10-P90', 'диапазоны вместо одной декоративно точной цифры'],
+				['Анонимно', 'эксперты говорят о рисках без карьерного давления']
+			],
+			intro: {
+				eyebrow: 'Decision intelligence',
+				title: 'Не опрос ради опроса, а управленческий артефакт',
+				body: 'Когда исторических данных мало, участники защищают свои планы, а внешние прогнозы расходятся, одна экспертная позиция не закрывает риск. WeOracle фиксирует независимые оценки, подсвечивает конфликт допущений и доводит группу до прозрачного решения.'
+			},
+			casesHeading: { eyebrow: 'TOP-5 use cases', title: 'Где метод дает самый понятный эффект' },
+			cases: [
+				{
+					kicker: '01 / Capital projects',
+					title: 'Оценка CAPEX и сроков крупных проектов',
+					body: 'Соберите независимый консенсус инженеров, снабжения, проектного офиса и финансов до решения инвесткомитета.',
+					result: 'Диапазон CAPEX, сроков, критических зависимостей и факторов отклонения.',
+					image: '/gen/case-capex-project-estimation.png',
+					alt: 'Панель планирования крупного промышленного проекта с моделью объекта и графиками сроков'
+				},
+				{
+					kicker: '02 / Technology roadmap',
+					title: 'Прогноз создания и зрелости технологий',
+					body: 'Оцените, какие технологии действительно созреют, когда станут применимыми и какие барьеры нужно снять.',
+					result: 'Карта зрелости, вероятность технического успеха, сроки и стоимость доведения.',
+					image: '/gen/case-technology-maturity-tree.png',
+					alt: 'Иерархическая карта технологических целей с экспертными оценками зрелости'
+				},
+				{
+					kicker: '03 / Resource allocation',
+					title: 'Распределение бюджета между инициативами',
+					body: 'Превратите конкурирующие заявки подразделений в приоритетный портфель на основе анонимной экспертной оценки.',
+					result:
+						'Рекомендуемое распределение бюджета, priority score и сценарии при разных лимитах.',
+					image: '/gen/case-budget-portfolio-allocation.png',
+					alt: 'Интерфейс портфельного распределения бюджета между стратегическими инициативами'
+				},
+				{
+					kicker: '04 / Long-term contracts',
+					title: 'Прогноз ценовых коридоров для контрактов',
+					body: 'Получите рабочий диапазон цены для LTA, закупок и переговоров, не полагаясь на один прогноз.',
+					result: 'Ценовой коридор, сценарные границы и условия пересмотра контрактной формулы.',
+					image: '/gen/case-price-corridor-contracts.png',
+					alt: 'Аналитический экран с коридором цен и сценарными линиями для долгосрочного контракта'
+				},
+				{
+					kicker: '05 / Turnaround',
+					title: 'График капитальных ремонтов и остановов',
+					body: 'Согласуйте реалистичное окно ремонта между производством, подрядчиками, снабжением и финансами.',
+					result: 'Критический путь, риски сокращения сроков и цена каждого компромисса.',
+					image: '/gen/case-turnaround-schedule.png',
+					alt: 'Промышленная панель планирования капитального ремонта с временной шкалой и зависимостями'
+				}
+			],
+			workflow: {
+				eyebrow: 'How it works',
+				title: 'Пять шагов от разрозненных мнений к диапазону решения',
+				steps: [
+					'Фасилитатор задает вопрос, шкалы оценки, участников и критерии консенсуса.',
+					'Эксперты независимо дают трехточечные оценки, аргументы и допущения.',
+					'WeOracle агрегирует ответы, показывает разброс и зоны расхождения.',
+					'После обсуждения спорных зон проходит следующий раунд уточнения.',
+					'Команда получает диапазон, приоритеты, риски и decision brief для комитета.'
+				]
+			},
+			result: {
+				eyebrow: 'Final output',
+				title: 'На выходе не чат и не таблица, а brief для решения',
+				body: 'Финальный результат можно обсуждать на инвесткомитете, бюджетной сессии, технологическом совете или операционном штабе: диапазоны, аргументы, спорные допущения, риски и рекомендуемые действия собраны в один документ.',
+				cta: 'Перейти в WeOracle'
+			},
+			labels: {
+				nav: 'Основная навигация',
+				metrics: 'Ключевые свойства метода',
+				cases: 'Кейсы WeOracle',
+				workflow: 'Процесс Wideband Delphi',
+				result: 'Результат сессии'
+			}
+		},
+		en: {
+			metaTitle: 'WeOracle — Wideband Delphi for executive decisions',
+			metaDescription:
+				'WeOracle gathers anonymous expert consensus for CAPEX, technology roadmaps, budgets, contract prices, and industrial schedules.',
+			nav: { cases: 'Cases', method: 'Method', signIn: 'Sign in' },
+			hero: {
+				eyebrow: 'Wideband Delphi platform',
+				title: 'Expert consensus for decisions where mistakes are expensive',
+				lead: 'WeOracle gathers independent estimates from domain experts, exposes disagreement, and turns uncertainty into ranges, priorities, and a committee-ready decision.',
+				create: 'Create session',
+				cases: 'View cases'
+			},
+			metrics: [
+				['3 rounds', 'enough structure to reduce noise and reveal stable consensus'],
+				['P10-P90', 'decision ranges instead of one decorative precise number'],
+				['Anonymous', 'experts can name risks without career pressure']
+			],
+			intro: {
+				eyebrow: 'Decision intelligence',
+				title: 'Not a survey. A decision artifact.',
+				body: 'When history is thin, teams defend their plans, and external forecasts diverge, one expert opinion is not enough. WeOracle captures independent estimates, highlights conflicting assumptions, and guides the group toward a transparent decision.'
+			},
+			casesHeading: { eyebrow: 'TOP-5 use cases', title: 'Where the method is easiest to value' },
+			cases: [
+				{
+					kicker: '01 / Capital projects',
+					title: 'CAPEX and schedule estimates for major projects',
+					body: 'Gather independent consensus from engineering, procurement, project controls, and finance before the investment committee.',
+					result: 'CAPEX range, schedule range, critical dependencies, and key deviation drivers.',
+					image: '/gen/case-capex-project-estimation.png',
+					alt: 'Capital project planning dashboard with a facility model and schedule analytics'
+				},
+				{
+					kicker: '02 / Technology roadmap',
+					title: 'Technology maturity and creation forecasts',
+					body: 'Estimate which technologies will mature, when they become usable, and which barriers must be removed.',
+					result:
+						'Maturity map, technical success probability, time-to-readiness, and cost to advance.',
+					image: '/gen/case-technology-maturity-tree.png',
+					alt: 'Technology goal tree with expert maturity and feasibility indicators'
+				},
+				{
+					kicker: '03 / Resource allocation',
+					title: 'Budget allocation across strategic initiatives',
+					body: 'Turn competing department requests into a prioritized portfolio based on anonymous expert judgment.',
+					result:
+						'Recommended budget allocation, priority scores, and scenarios for different limits.',
+					image: '/gen/case-budget-portfolio-allocation.png',
+					alt: 'Portfolio allocation interface for strategic initiatives'
+				},
+				{
+					kicker: '04 / Long-term contracts',
+					title: 'Price corridors for long-term contracts',
+					body: 'Use a working price range for LTA, procurement, and negotiation instead of relying on one forecast.',
+					result: 'Price corridor, scenario boundaries, and contract formula review triggers.',
+					image: '/gen/case-price-corridor-contracts.png',
+					alt: 'Analytics screen with price corridor and scenario curves for a long-term contract'
+				},
+				{
+					kicker: '05 / Turnaround',
+					title: 'Maintenance shutdown and turnaround schedules',
+					body: 'Align a realistic maintenance window across production, contractors, procurement, and finance.',
+					result: 'Critical path, schedule compression risks, and the cost of each compromise.',
+					image: '/gen/case-turnaround-schedule.png',
+					alt: 'Industrial maintenance planning dashboard with timeline and dependencies'
+				}
+			],
+			workflow: {
+				eyebrow: 'How it works',
+				title: 'Five steps from scattered estimates to a decision range',
+				steps: [
+					'The facilitator defines the question, scales, participants, and consensus criteria.',
+					'Experts independently submit three-point estimates, rationale, and assumptions.',
+					'WeOracle aggregates answers and highlights spread and disagreement hotspots.',
+					'After focused discussion, the next round refines the disputed estimates.',
+					'The team receives ranges, priorities, risks, and a committee-ready decision brief.'
+				]
+			},
+			result: {
+				eyebrow: 'Final output',
+				title: 'The output is not a chat or spreadsheet. It is a decision brief.',
+				body: 'The final result is usable in an investment committee, budget session, technology council, or operations review: ranges, rationale, contested assumptions, risks, and recommended actions in one document.',
+				cta: 'Open WeOracle'
+			},
+			labels: {
+				nav: 'Primary navigation',
+				metrics: 'Core method properties',
+				cases: 'WeOracle cases',
+				workflow: 'Wideband Delphi process',
+				result: 'Session result'
+			}
+		},
+		es: {
+			metaTitle: 'WeOracle — Wideband Delphi para decisiones ejecutivas',
+			metaDescription:
+				'WeOracle reúne consenso experto anónimo para CAPEX, tecnología, presupuestos, precios contractuales y cronogramas industriales.',
+			nav: { cases: 'Casos', method: 'Método', signIn: 'Entrar' },
+			hero: {
+				eyebrow: 'Plataforma Wideband Delphi',
+				title: 'Consenso experto para decisiones donde equivocarse cuesta caro',
+				lead: 'WeOracle reúne estimaciones independientes de expertos, muestra desacuerdos y convierte la incertidumbre en rangos, prioridades y una decisión lista para comité.',
+				create: 'Crear sesión',
+				cases: 'Ver casos'
+			},
+			metrics: [
+				['3 rondas', 'estructura suficiente para reducir ruido y revelar consenso estable'],
+				['P10-P90', 'rangos de decisión en lugar de una sola cifra decorativamente precisa'],
+				['Anónimo', 'los expertos pueden señalar riesgos sin presión profesional']
+			],
+			intro: {
+				eyebrow: 'Decision intelligence',
+				title: 'No es una encuesta. Es un artefacto de decisión.',
+				body: 'Cuando faltan datos históricos, los equipos defienden sus planes y los pronósticos externos divergen, una sola opinión experta no basta. WeOracle captura estimaciones independientes, destaca supuestos en conflicto y guía al grupo hacia una decisión transparente.'
+			},
+			casesHeading: { eyebrow: 'TOP-5 casos de uso', title: 'Dónde el método muestra más valor' },
+			cases: [
+				{
+					kicker: '01 / Capital projects',
+					title: 'CAPEX y plazos de grandes proyectos',
+					body: 'Reúna consenso independiente de ingeniería, compras, control de proyectos y finanzas antes del comité de inversión.',
+					result: 'Rango de CAPEX, rango de plazos, dependencias críticas y causas de desviación.',
+					image: '/gen/case-capex-project-estimation.png',
+					alt: 'Panel de planificación de un gran proyecto con modelo de instalación y cronograma'
+				},
+				{
+					kicker: '02 / Technology roadmap',
+					title: 'Pronóstico de creación y madurez tecnológica',
+					body: 'Estime qué tecnologías madurarán, cuándo serán aplicables y qué barreras deben eliminarse.',
+					result: 'Mapa de madurez, probabilidad de éxito técnico, plazo y coste para avanzar.',
+					image: '/gen/case-technology-maturity-tree.png',
+					alt: 'Árbol de objetivos tecnológicos con indicadores de madurez y viabilidad'
+				},
+				{
+					kicker: '03 / Resource allocation',
+					title: 'Asignación de presupuesto entre iniciativas',
+					body: 'Convierta solicitudes competidoras en un portafolio priorizado mediante juicio experto anónimo.',
+					result: 'Distribución recomendada, priority score y escenarios para distintos límites.',
+					image: '/gen/case-budget-portfolio-allocation.png',
+					alt: 'Interfaz de asignación de presupuesto entre iniciativas estratégicas'
+				},
+				{
+					kicker: '04 / Long-term contracts',
+					title: 'Corredores de precio para contratos largos',
+					body: 'Use un rango operativo para compras, LTA y negociación en lugar de depender de un único pronóstico.',
+					result:
+						'Corredor de precio, límites de escenarios y condiciones de revisión contractual.',
+					image: '/gen/case-price-corridor-contracts.png',
+					alt: 'Pantalla analítica con corredor de precios y curvas de escenarios'
+				},
+				{
+					kicker: '05 / Turnaround',
+					title: 'Cronogramas de mantenimiento y paradas',
+					body: 'Alinee una ventana realista entre producción, contratistas, compras y finanzas.',
+					result: 'Ruta crítica, riesgos de comprimir plazos y coste de cada compromiso.',
+					image: '/gen/case-turnaround-schedule.png',
+					alt: 'Panel industrial de planificación de mantenimiento con línea temporal'
+				}
+			],
+			workflow: {
+				eyebrow: 'Cómo funciona',
+				title: 'Cinco pasos desde estimaciones dispersas hasta un rango de decisión',
+				steps: [
+					'El facilitador define la pregunta, escalas, participantes y criterios de consenso.',
+					'Los expertos envían estimaciones de tres puntos, argumentos y supuestos.',
+					'WeOracle agrega respuestas y muestra dispersión y zonas de desacuerdo.',
+					'Tras discutir los puntos disputados, una nueva ronda afina las estimaciones.',
+					'El equipo recibe rangos, prioridades, riesgos y un brief listo para comité.'
+				]
+			},
+			result: {
+				eyebrow: 'Resultado final',
+				title: 'El resultado no es un chat ni una hoja de cálculo. Es un brief de decisión.',
+				body: 'El resultado final sirve para un comité de inversión, sesión presupuestaria, consejo tecnológico o revisión operativa: rangos, argumentos, supuestos discutidos, riesgos y acciones recomendadas en un solo documento.',
+				cta: 'Abrir WeOracle'
+			},
+			labels: {
+				nav: 'Navegación principal',
+				metrics: 'Propiedades clave del método',
+				cases: 'Casos de WeOracle',
+				workflow: 'Proceso Wideband Delphi',
+				result: 'Resultado de la sesión'
+			}
+		}
+	};
+
+	const currentLang = $derived((page.data as { lang?: string }).lang ?? 'en');
+	const content = $derived(copy[currentLang] ?? copy.en);
 </script>
 
-<svelte:head>
-	<title>WeOracle</title>
-	<meta
-		name="description"
-		content="WeOracle runs anonymous Wideband Delphi sessions for expert forecasts, estimates, and consensus building."
-	/>
-</svelte:head>
-
-<main class="home">
-	<section class="home__hero">
-		<nav class="home__nav" aria-label="Primary">
-			<Link class="home__brand" href="/" tone="tertiary">WeOracle</Link>
-			<div>
-				<Link href="/app/sign-in" tone="tertiary">Sign in</Link>
-				<Link href="/app" tone="tertiary">Sessions</Link>
-				<ThemeModeToggle />
-			</div>
-		</nav>
-
-		<div class="home__content">
-			<div class="home__copy">
-				<Text class="home__eyebrow" text="Wideband Delphi" />
-				<Heading level={1} class="home__title">
-					Anonymous expert consensus for decisions that need judgment.
-				</Heading>
-				<Text class="home__lead" block>
-					Create a session, invite experts, collect three-point estimates, discuss disagreements by alias,
-					and publish round-by-round consensus results.
-				</Text>
-				<div class="home__actions">
-					<Link class="home__primary" href="/app">Open sessions</Link>
-					<Link href="/app/new" tone="tertiary">Create session</Link>
-				</div>
-			</div>
-
-			<div class="home__panel" aria-label="Wideband Delphi flow">
-				<div>
-					<Text class="home__step" text="01" />
-					<Text text="Define questions" />
-				</div>
-				<div>
-					<Text class="home__step" text="02" />
-					<Text text="Invite experts" />
-				</div>
-				<div>
-					<Text class="home__step" text="03" />
-					<Text text="Collect anonymous estimates" />
-				</div>
-				<div>
-					<Text class="home__step" text="04" />
-					<Text text="Review consensus" />
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="home__metrics">
-		<article>
-			<Text class="home__metric-title" text="Roles" />
-			<Text text="coordinator, expert, admin" />
-		</article>
-		<article>
-			<Text class="home__metric-title" text="Rounds" />
-			<Text text="draft, active, snapshots, final report" />
-		</article>
-		<article>
-			<Text class="home__metric-title" text="Privacy" />
-			<Text text="expert aliases stay separate from identity" />
-		</article>
-	</section>
-</main>
-
-<style>
-	.home {
-		min-height: 100vh;
-		background: var(--color-background-primary, #fff);
-		color: var(--color-text-primary, #0f172a);
-	}
-	.home__hero {
-		display: flex;
-		flex-direction: column;
-		min-height: min(42rem, 100vh);
-		padding: 1.25rem;
-	}
-	.home__nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-	:global(.home__brand),
-	.home__actions :global(.c-typography-link) {
-		font-weight: 700;
-		text-decoration: none;
-		color: inherit;
-	}
-	.home__nav div {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		font-size: 0.875rem;
-		color: var(--color-text-secondary, #475569);
-	}
-	.home__content {
-		flex: 1;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
-		gap: 2rem;
-		align-items: center;
-		max-width: 72rem;
-		width: 100%;
-		margin: 0 auto;
-		padding: 3rem 0;
-	}
-	.home__copy {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		max-width: 44rem;
-	}
-	:global(.home__eyebrow) {
-		font-size: 0.75rem;
-		font-weight: 800;
-		text-transform: uppercase;
-		color: var(--color-primary-700, #1d4ed8);
-	}
-	:global(.home__title) {
-		font-size: clamp(2rem, 5vw, 4.5rem);
-		line-height: 1;
-		letter-spacing: 0;
-	}
-	:global(.home__lead) {
-		max-width: 38rem;
-		font-size: 1rem;
-		line-height: 1.7;
-		color: var(--color-text-secondary, #475569);
-	}
-	.home__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 0.5rem;
-	}
-	.home__actions :global(.c-typography-link) {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 2.75rem;
-		padding: 0 1rem;
-		border: 1px solid var(--color-border-primary, #cbd5e1);
-		border-radius: 0.375rem;
-		font-size: 0.875rem;
-	}
-	.home__actions :global(.home__primary) {
-		border-color: var(--color-primary-500, #3b82f6);
-		background: var(--color-primary-500, #3b82f6);
-		color: var(--color-text-inverse, #fff);
-	}
-	.home__panel {
-		display: grid;
-		gap: 0.625rem;
-		padding: 0.75rem;
-		border: 1px solid var(--color-border-primary, #e2e8f0);
-		border-radius: 0.5rem;
-		background: var(--color-background-secondary, #f8fafc);
-	}
-	.home__panel div,
-	.home__metrics article {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding: 0.875rem;
-		border: 1px solid var(--color-border-primary, #e2e8f0);
-		border-radius: 0.5rem;
-		background: var(--color-background-primary, #fff);
-	}
-	:global(.home__step),
-	:global(.home__metric-title) {
-		font-size: 0.75rem;
-		font-weight: 800;
-		color: var(--color-primary-700, #1d4ed8);
-	}
-	.home__panel :global(.c-typography-text:not(.home__step)),
-	.home__metrics :global(.c-typography-text:not(.home__metric-title)) {
-		font-size: 0.875rem;
-		color: var(--color-text-secondary, #475569);
-	}
-	.home__metrics {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.75rem;
-		max-width: 72rem;
-		margin: 0 auto;
-		padding: 0 1.25rem 2rem;
-	}
-	@media (max-width: 760px) {
-		.home__content,
-		.home__metrics {
-			grid-template-columns: 1fr;
-		}
-		.home__hero {
-			min-height: auto;
-		}
-	}
-</style>
+<WbdLandingPage
+	{content}
+	heroImageSrc="/gen/hero-1.png"
+	heroImageAlt="Аналитическая комната принятия решений с панелью экспертного консенсуса"
+	workflowImageSrc="/gen/process-wideband-delphi-flow.png"
+	workflowImageAlt="Схема процесса Wideband Delphi от экспертного ввода до финального консенсуса"
+	resultImageSrc="/gen/result-consensus-decision-brief.png"
+	resultImageAlt="Цифровой decision brief с диапазонами, рисками и итоговым консенсусом"
+>
+	{#snippet brand()}
+		<BrandLogo class="nav__brand" href="/" size="1.75rem" />
+	{/snippet}
+	{#snippet languageControl()}
+		<LanguageControl />
+	{/snippet}
+</WbdLandingPage>

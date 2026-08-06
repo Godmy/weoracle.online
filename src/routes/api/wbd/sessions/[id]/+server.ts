@@ -3,9 +3,21 @@ import type { RequestHandler } from './$types';
 import { EXPERTS_BY_SESSION_SQL, mapD1Error, nowIso } from '$lib/server/wbd/db';
 import { requireSessionOwner } from '$lib/server/wbd/auth';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
+import { deleteSessionTree } from '$lib/server/wbd/session-cleanup';
 
 const STATUSES = ['draft', 'active', 'round_1', 'round_2', 'round_3', 'completed'] as const;
-const PATCHABLE_COLUMNS = new Set(['status', 'current_round', 'assumptions', 'started_at', 'completed_at']);
+const PATCHABLE_COLUMNS = new Set([
+	'title',
+	'description',
+	'image_url',
+	'is_public',
+	'max_rounds',
+	'assumptions',
+	'status',
+	'current_round',
+	'started_at',
+	'completed_at'
+]);
 
 export const GET: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
@@ -27,13 +39,29 @@ export const GET: RequestHandler = async ({ params, cookies, platform }) => {
 
 export const PATCH: RequestHandler = async ({ params, request, cookies, platform }) => {
 	const db = platform!.env.DB;
-	await requireSessionOwner(cookies, db, params.id);
+	const actor = await requireSessionOwner(cookies, db, params.id);
 
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body !== 'object') error(400, 'Invalid body');
 
 	if ('status' in body && !STATUSES.includes(body.status)) {
 		error(400, `status must be one of ${STATUSES.join(', ')}`);
+	}
+	if ('title' in body && String(body.title ?? '').trim().length === 0) {
+		error(400, 'title is required');
+	}
+	if ('max_rounds' in body) {
+		const maxRounds = Number(body.max_rounds);
+		if (!Number.isInteger(maxRounds) || maxRounds < 1) {
+			error(400, 'max_rounds must be a positive integer');
+		}
+		body.max_rounds = maxRounds;
+	}
+	if ('image_url' in body) {
+		body.image_url = normalizeSessionImageUrl(body.image_url);
+	}
+	if ('is_public' in body) {
+		body.is_public = normalizeSessionVisibility(body.is_public);
 	}
 
 	const entries = Object.entries(body as Record<string, unknown>).filter(([key]) =>
@@ -50,6 +78,14 @@ export const PATCH: RequestHandler = async ({ params, request, cookies, platform
 			.bind(...values, params.id)
 			.first();
 		if (!result) error(404, 'Session not found');
+		await recordAuditEvent(db, {
+			actorUserId: actor.id,
+			sessionId: params.id,
+			action: 'session_updated',
+			entityType: 'session',
+			entityId: params.id,
+			metadata: { fields: entries.map(([key]) => key) }
+		});
 		return json(result);
 	} catch (err) {
 		const { status, message } = mapD1Error(err);
@@ -97,3 +133,45 @@ export const POST: RequestHandler = async ({ params, cookies, platform }) => {
 
 	return json(result);
 };
+
+export const DELETE: RequestHandler = async ({ params, cookies, platform }) => {
+	const db = platform!.env.DB;
+	const actor = await requireSessionOwner(cookies, db, params.id);
+
+	const existing = await db.prepare(`SELECT id FROM wbd_sessions WHERE id = ?1`).bind(params.id).first();
+	if (!existing) error(404, 'Session not found');
+
+	await deleteSessionTree(db, params.id);
+	await recordAuditEvent(db, {
+		actorUserId: actor.id,
+		sessionId: null,
+		action: 'session_deleted',
+		entityType: 'session',
+		entityId: params.id
+	});
+
+	return json({ ok: true });
+};
+
+function normalizeSessionImageUrl(value: unknown): string | null {
+	if (value == null || value === '') return null;
+	if (typeof value !== 'string') error(400, 'image_url must be a string');
+	const trimmed = value.trim();
+	if (!trimmed) return null;
+	if (trimmed.length > 2048) error(400, 'image_url is too long');
+	if (trimmed.startsWith('/')) return trimmed;
+	try {
+		const url = new URL(trimmed);
+		if (url.protocol === 'http:' || url.protocol === 'https:') return trimmed;
+	} catch {
+		error(400, 'image_url must be an absolute http(s) URL or an app-relative path');
+	}
+	error(400, 'image_url must be an absolute http(s) URL or an app-relative path');
+}
+
+function normalizeSessionVisibility(value: unknown): 0 | 1 {
+	if (value == null) return 0;
+	if (value === true || value === 1) return 1;
+	if (value === false || value === 0) return 0;
+	error(400, 'is_public must be a boolean');
+}

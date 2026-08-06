@@ -52,6 +52,7 @@ export const POST: RequestHandler = async ({ params, request, platform }) => {
 				   pessimistic = excluded.pessimistic,
 				   rationale = excluded.rationale,
 				   confidence = excluded.confidence,
+				   submitted_at = COALESCE(excluded.submitted_at, wbd_answers.submitted_at),
 				   updated_at = excluded.updated_at
 				 RETURNING *`
 			)

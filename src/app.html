@@ -2,8 +2,48 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.ico?v=2" sizes="any" />
+		<link
+			rel="icon"
+			href="%sveltekit.assets%/favicon.png?v=2"
+			sizes="512x512"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="icon"
+			href="%sveltekit.assets%/favicon-light.png?v=2"
+			sizes="512x512"
+			media="(prefers-color-scheme: light)"
+		/>
+		<link rel="icon" href="%sveltekit.assets%/favicon-48x48.png?v=2" sizes="48x48" />
+		<link rel="icon" href="%sveltekit.assets%/favicon-32x32.png?v=2" sizes="32x32" />
+		<link rel="icon" href="%sveltekit.assets%/favicon-16x16.png?v=2" sizes="16x16" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png?v=2" />
+		<meta name="theme-color" content="#081522" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			(() => {
+				const modeKey = 'stylist-theme';
+				const schemeKey = 'stylist-theme-scheme';
+				const defaultMode = 'light';
+				const defaultScheme = 'weoracle';
+				const storedMode = localStorage.getItem(modeKey);
+				const mode = storedMode === 'dark' || storedMode === 'light' ? storedMode : defaultMode;
+
+				if (!storedMode || storedMode === 'default') {
+					localStorage.setItem(modeKey, defaultMode);
+				}
+				if (!localStorage.getItem(schemeKey)) {
+					localStorage.setItem(schemeKey, defaultScheme);
+				}
+
+				document.documentElement.classList.remove('light', 'dark', 'default');
+				document.documentElement.classList.add(mode);
+				document.documentElement.setAttribute('theme-mode', mode);
+				document.documentElement.setAttribute('theme-scheme', defaultScheme);
+				document.documentElement.style.colorScheme = mode;
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

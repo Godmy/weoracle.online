@@ -11,12 +11,16 @@ export const POST: RequestHandler = async ({ request, cookies, platform }) => {
 	if (!body || typeof body.title !== 'string') {
 		error(400, 'title is required');
 	}
-	const { title, description, max_rounds, assumptions } = body as {
+	const { title, description, image_url, is_public, max_rounds, assumptions } = body as {
 		title: string;
 		description?: string;
+		image_url?: string | null;
+		is_public?: boolean | number;
 		max_rounds?: number;
 		assumptions?: string;
 	};
+	const imageUrl = normalizeSessionImageUrl(image_url);
+	const isPublic = normalizeSessionVisibility(is_public);
 
 	const db = platform!.env.DB;
 	try {
@@ -24,11 +28,11 @@ export const POST: RequestHandler = async ({ request, cookies, platform }) => {
 		// anyone could attribute a session to an arbitrary user id.
 		const result = await db
 			.prepare(
-				`INSERT INTO wbd_sessions (id, title, description, max_rounds, assumptions, created_by)
-				 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+				`INSERT INTO wbd_sessions (id, title, description, image_url, is_public, max_rounds, assumptions, created_by)
+				 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
 				 RETURNING *`
 			)
-			.bind(generateId(), title, description ?? null, max_rounds ?? 3, assumptions ?? null, actor.id)
+			.bind(generateId(), title, description ?? null, imageUrl, isPublic, max_rounds ?? 3, assumptions ?? null, actor.id)
 			.first<{ id: string }>();
 
 		await recordAuditEvent(db, {
@@ -71,3 +75,26 @@ export const GET: RequestHandler = async ({ url, cookies, platform }) => {
 	const { results } = await stmt.all();
 	return json(results);
 };
+
+function normalizeSessionImageUrl(value: unknown): string | null {
+	if (value == null || value === '') return null;
+	if (typeof value !== 'string') error(400, 'image_url must be a string');
+	const trimmed = value.trim();
+	if (!trimmed) return null;
+	if (trimmed.length > 2048) error(400, 'image_url is too long');
+	if (trimmed.startsWith('/')) return trimmed;
+	try {
+		const url = new URL(trimmed);
+		if (url.protocol === 'http:' || url.protocol === 'https:') return trimmed;
+	} catch {
+		error(400, 'image_url must be an absolute http(s) URL or an app-relative path');
+	}
+	error(400, 'image_url must be an absolute http(s) URL or an app-relative path');
+}
+
+function normalizeSessionVisibility(value: unknown): 0 | 1 {
+	if (value == null) return 0;
+	if (value === true || value === 1) return 1;
+	if (value === false || value === 0) return 0;
+	error(400, 'is_public must be a boolean');
+}

@@ -9,7 +9,7 @@
 			metaTitle: 'WeOracle — Wideband Delphi для управленческих решений',
 			metaDescription:
 				'WeOracle помогает собрать анонимный экспертный консенсус по CAPEX, технологиям, бюджету, контрактным ценам и промышленным графикам.',
-			nav: { cases: 'Кейсы', method: 'Метод', signIn: 'Войти' },
+			nav: { cases: 'Кейсы', method: 'Метод', about: 'О методе', signIn: 'Войти' },
 			hero: {
 				eyebrow: 'Wideband Delphi platform',
 				title: 'Экспертный консенсус для решений, где ошибка стоит дорого',
@@ -22,6 +22,30 @@
 				['P10-P90', 'диапазоны вместо одной декоративно точной цифры'],
 				['Анонимно', 'эксперты говорят о рисках без карьерного давления']
 			],
+			definition: {
+				eyebrow: 'Что это такое',
+				title: 'Wideband Delphi: коллективный прогноз без иллюзий консенсуса',
+				paragraphs: [
+					'Wideband Delphi — метод получения группового прогноза или экспертной оценки, при котором участники отвечают анонимно, видят разброс чужих мнений и уточняют свою позицию в несколько раундов. Здесь никто не давит авторитетом и не подстраивается под первого высказавшегося: итоговая оценка формируется через осознанное сближение позиций — или честную фиксацию несогласия.',
+					'Название пришло из IT: метод изначально использовался для оценки сроков разработки ПО, где «wideband» — широкий диапазон оценки (минимум–ожидаемое–максимум), а «Delphi» — отсылка к древнегреческому оракулу. Сегодня метод применяется везде, где нужен прогноз в условиях неопределённости: экономика, рынок труда, цены, технологии, социальные тренды.'
+				],
+				comparisonTitle: 'Почему это лучше, чем обычный опрос или голосование',
+				comparisonColumns: ['Обычный опрос', 'Открытая дискуссия', 'Wideband Delphi'],
+				comparisonCriteria: [
+					'Анонимность',
+					'Учёт неопределённости',
+					'Защита от эффекта первого мнения',
+					'Пересмотр позиции с аргументами',
+					'Видимость расхождений'
+				],
+				comparisonRows: [
+					['Обычно нет', 'Нет', 'Да'],
+					['Нет', 'Иногда', 'Да (диапазон min–max)'],
+					['Нет', 'Нет', 'Да'],
+					['Нет', 'Частично', 'Да, структурировано'],
+					['Скрыта в среднем', 'Видна, но хаотично', 'Видна и структурирована']
+				]
+			},
 			intro: {
 				eyebrow: 'Decision intelligence',
 				title: 'Не опрос ради опроса, а управленческий артефакт',
@@ -91,6 +115,7 @@
 			labels: {
 				nav: 'Основная навигация',
 				metrics: 'Ключевые свойства метода',
+				definition: 'Что такое Wideband Delphi',
 				cases: 'Кейсы WeOracle',
 				workflow: 'Процесс Wideband Delphi',
 				result: 'Результат сессии'
@@ -100,7 +125,7 @@
 			metaTitle: 'WeOracle — Wideband Delphi for executive decisions',
 			metaDescription:
 				'WeOracle gathers anonymous expert consensus for CAPEX, technology roadmaps, budgets, contract prices, and industrial schedules.',
-			nav: { cases: 'Cases', method: 'Method', signIn: 'Sign in' },
+			nav: { cases: 'Cases', method: 'Method', about: 'About', signIn: 'Sign in' },
 			hero: {
 				eyebrow: 'Wideband Delphi platform',
 				title: 'Expert consensus for decisions where mistakes are expensive',
@@ -113,6 +138,30 @@
 				['P10-P90', 'decision ranges instead of one decorative precise number'],
 				['Anonymous', 'experts can name risks without career pressure']
 			],
+			definition: {
+				eyebrow: 'What it is',
+				title: 'Wideband Delphi: a collective forecast without the illusion of consensus',
+				paragraphs: [
+					'Wideband Delphi is a method for producing a group forecast or expert estimate in which participants respond anonymously, see the spread of other opinions, and refine their position over several rounds. No one is pressured by authority or anchored to whoever spoke first — the final estimate forms through deliberate convergence, or an honest record of disagreement.',
+					'The name comes from software engineering: the method was originally used to estimate development timelines, where "wideband" means a wide estimation range (minimum-expected-maximum), and "Delphi" refers to the ancient Greek oracle. Today it is used anywhere a forecast is needed under uncertainty: economics, labor markets, pricing, technology, social trends.'
+				],
+				comparisonTitle: 'Why it beats a regular poll or a vote',
+				comparisonColumns: ['Regular poll', 'Open discussion', 'Wideband Delphi'],
+				comparisonCriteria: [
+					'Anonymity',
+					'Accounts for uncertainty',
+					'Protection from anchoring',
+					'Revising a position with evidence',
+					'Visibility of disagreement'
+				],
+				comparisonRows: [
+					['Usually not', 'No', 'Yes'],
+					['No', 'Sometimes', 'Yes (min-max range)'],
+					['No', 'No', 'Yes'],
+					['No', 'Partially', 'Yes, structured'],
+					['Hidden in the average', 'Visible, but chaotic', 'Visible and structured']
+				]
+			},
 			intro: {
 				eyebrow: 'Decision intelligence',
 				title: 'Not a survey. A decision artifact.',
@@ -183,6 +232,7 @@
 			labels: {
 				nav: 'Primary navigation',
 				metrics: 'Core method properties',
+				definition: 'What Wideband Delphi is',
 				cases: 'WeOracle cases',
 				workflow: 'Wideband Delphi process',
 				result: 'Session result'
@@ -192,7 +242,7 @@
 			metaTitle: 'WeOracle — Wideband Delphi para decisiones ejecutivas',
 			metaDescription:
 				'WeOracle reúne consenso experto anónimo para CAPEX, tecnología, presupuestos, precios contractuales y cronogramas industriales.',
-			nav: { cases: 'Casos', method: 'Método', signIn: 'Entrar' },
+			nav: { cases: 'Casos', method: 'Método', about: 'Sobre el método', signIn: 'Entrar' },
 			hero: {
 				eyebrow: 'Plataforma Wideband Delphi',
 				title: 'Consenso experto para decisiones donde equivocarse cuesta caro',
@@ -205,6 +255,30 @@
 				['P10-P90', 'rangos de decisión en lugar de una sola cifra decorativamente precisa'],
 				['Anónimo', 'los expertos pueden señalar riesgos sin presión profesional']
 			],
+			definition: {
+				eyebrow: 'Qué es',
+				title: 'Wideband Delphi: un pronóstico colectivo sin la ilusión del consenso',
+				paragraphs: [
+					'Wideband Delphi es un método para obtener un pronóstico grupal o una estimación experta en el que los participantes responden de forma anónima, ven la dispersión de las demás opiniones y ajustan su posición a lo largo de varias rondas. Nadie presiona con autoridad ni se acomoda a quien habló primero: la estimación final surge de un acercamiento deliberado, o de un registro honesto del desacuerdo.',
+					'El nombre proviene de la ingeniería de software: el método se usó originalmente para estimar plazos de desarrollo, donde "wideband" significa un rango de estimación amplio (mínimo-esperado-máximo), y "Delphi" hace referencia al oráculo de la antigua Grecia. Hoy se aplica en cualquier lugar donde se necesite un pronóstico bajo incertidumbre: economía, mercado laboral, precios, tecnología, tendencias sociales.'
+				],
+				comparisonTitle: 'Por qué es mejor que una encuesta o una votación habitual',
+				comparisonColumns: ['Encuesta habitual', 'Discusión abierta', 'Wideband Delphi'],
+				comparisonCriteria: [
+					'Anonimato',
+					'Considera la incertidumbre',
+					'Protección frente al efecto ancla',
+					'Revisar la posición con argumentos',
+					'Visibilidad del desacuerdo'
+				],
+				comparisonRows: [
+					['Normalmente no', 'No', 'Sí'],
+					['No', 'A veces', 'Sí (rango min-max)'],
+					['No', 'No', 'Sí'],
+					['No', 'Parcialmente', 'Sí, de forma estructurada'],
+					['Oculta en el promedio', 'Visible, pero caótica', 'Visible y estructurada']
+				]
+			},
 			intro: {
 				eyebrow: 'Decision intelligence',
 				title: 'No es una encuesta. Es un artefacto de decisión.',
@@ -274,6 +348,7 @@
 			labels: {
 				nav: 'Navegación principal',
 				metrics: 'Propiedades clave del método',
+				definition: 'Qué es Wideband Delphi',
 				cases: 'Casos de WeOracle',
 				workflow: 'Proceso Wideband Delphi',
 				result: 'Resultado de la sesión'

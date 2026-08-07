@@ -8,7 +8,7 @@
 
 	const languages: Language[] = [
 		{ code: 'en', name: 'English', nativeName: 'English', flag: 'GB' },
-		{ code: 'es', name: 'Spanish', nativeName: 'Espanol', flag: 'ES' },
+		{ code: 'es', name: 'Spanish', nativeName: 'Español', flag: 'ES' },
 		{ code: 'ru', name: 'Russian', nativeName: 'Русский', flag: 'RU' }
 	];
 
@@ -20,6 +20,7 @@
 		languages.find((language) => language.code === currentLanguage) ?? languages[0]
 	);
 	const selectedFlagScale = $derived(selectedLanguage.flag === 'GB' ? 2.05 : 1.45);
+	const selectedLanguageLabel = $derived(selectedLanguage.nativeName ?? selectedLanguage.name);
 
 	async function handleLanguageChange(code: string) {
 		isOpen = false;
@@ -30,12 +31,12 @@
 </script>
 
 <div class="wbd-language-control">
-	<Tooltip content={selectedLanguage.name} placement="bottom" trigger="hover" variant="arrow" asChild>
+	<Tooltip content={selectedLanguageLabel} placement="bottom" trigger="hover" variant="arrow" asChild>
 		{#snippet children()}
 			<button
 				type="button"
 				class="wbd-language-control__button"
-				aria-label={`Selected language: ${selectedLanguage.name}`}
+				aria-label={selectedLanguageLabel}
 				aria-haspopup="listbox"
 				aria-expanded={isOpen}
 				style={`--wbd-language-flag-scale: ${selectedFlagScale}`}
@@ -59,7 +60,7 @@
 					aria-selected={language.code === currentLanguage}
 					onclick={() => handleLanguageChange(language.code)}
 				>
-					{language.name}
+					{language.nativeName ?? language.name}
 				</button>
 			{/each}
 		</div>

@@ -21,6 +21,8 @@
 	);
 	const selectedFlagScale = $derived(selectedLanguage.flag === 'GB' ? 2.05 : 1.45);
 	const selectedLanguageLabel = $derived(selectedLanguage.nativeName ?? selectedLanguage.name);
+	const listboxLabel: Record<string, string> = { ru: 'Язык', en: 'Language', es: 'Idioma' };
+	const currentListboxLabel = $derived(listboxLabel[currentLanguage] ?? listboxLabel.en);
 
 	async function handleLanguageChange(code: string) {
 		isOpen = false;
@@ -50,7 +52,7 @@
 	</Tooltip>
 
 	{#if isOpen}
-		<div class="wbd-language-control__dropdown" role="listbox" aria-label="Language">
+		<div class="wbd-language-control__dropdown" role="listbox" aria-label={currentListboxLabel}>
 			{#each languages as language}
 				<button
 					type="button"

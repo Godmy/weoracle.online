@@ -289,7 +289,7 @@
 	{content}
 	heroImageSrc="/gen/hero-1.png"
 	heroImageAlt="Аналитическая комната принятия решений с панелью экспертного консенсуса"
-	workflowImageSrc="/gen/process-wideband-delphi-flow.png"
+	workflowImageSrc="/gen/about.png"
 	workflowImageAlt="Схема процесса Wideband Delphi от экспертного ввода до финального консенсуса"
 	resultImageSrc="/gen/result-consensus-decision-brief.png"
 	resultImageAlt="Цифровой decision brief с диапазонами, рисками и итоговым консенсусом"

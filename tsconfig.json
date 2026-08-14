@@ -18,7 +18,6 @@
 		"src/service-worker.ts",
 		"src/service-worker/**/*.ts",
 		"src/service-worker.d.ts",
-		"src/service-worker/**/*.d.ts",
-		"../stylist-svelte/**"
+		"src/service-worker/**/*.d.ts"
 	]
 }

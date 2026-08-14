@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { AdminSidebar, ThemeModeToggle } from 'stylist-svelte';
-	import type { StructWbdAdminNavItem } from 'stylist-svelte';
+	import { goto } from '$app/navigation';
+	import { AdminSidebar, ThemeModeToggle, ActionSegmentedControl } from 'stylist-svelte';
+	import type { RecipeAdminSidebar } from 'stylist-svelte';
 	import LanguageControl from '$lib/wbd/language-control.svelte';
 	import BrandLogo from '$lib/brand-logo.svelte';
 	import { t } from '$lib/i18n';
@@ -13,6 +14,7 @@
 	const STATIC_SECTIONS = $derived<Array<{ id: string; label: string; href: string; iconName: string }>>([
 		{ id: 'sessions', label: t('nav.sessions'), href: '/app', iconName: 'list' },
 		{ id: 'questions', label: t('nav.questions'), href: '/app/questions', iconName: 'file' },
+		{ id: 'experts', label: 'Experts', href: '/app/experts', iconName: 'users' },
 		{ id: 'estimates', label: t('nav.estimates'), href: '/app/estimates', iconName: 'check-circle' },
 		{ id: 'analytics', label: t('nav.analytics'), href: '/app/analytics', iconName: 'activity' },
 		{ id: 'discussions', label: t('nav.discussions'), href: '/app/discussions', iconName: 'chat' },
@@ -28,7 +30,7 @@
 		return path === item.href || path.startsWith(`${item.href}/`);
 	}
 
-	const navItems = $derived<StructWbdAdminNavItem[]>([
+	const navItems = $derived<RecipeAdminSidebar['items']>([
 		...STATIC_SECTIONS.map((item) => ({ ...item, active: isActive(item) })),
 		...(data.user?.role === 'admin'
 			? [
@@ -55,6 +57,43 @@
 	});
 	const showBackToSessions = $derived(isSessionDetailPage);
 	const showNewSessionAction = $derived(path !== '/app/new' && activeNavItem?.id === 'sessions' && !showBackToSessions);
+
+	const showSessionFilters = $derived(path === '/app');
+	const visibilityOptions = ['All', 'Public', 'Private'];
+	const visibilityParam = $derived(page.url.searchParams.get('visibility'));
+	const visibilityIndex = $derived(visibilityParam === 'public' ? 1 : visibilityParam === 'private' ? 2 : 0);
+
+	function handleVisibilityChange(index: number): void {
+		const url = new URL(page.url);
+		if (index === 1) url.searchParams.set('visibility', 'public');
+		else if (index === 2) url.searchParams.set('visibility', 'private');
+		else url.searchParams.delete('visibility');
+		goto(`${url.pathname}${url.search}`, { keepFocus: true, noScroll: true, replaceState: true });
+	}
+
+	const STATUS_FILTERS = [
+		{ label: 'All', value: '' },
+		{ label: 'Draft', value: 'draft' },
+		{ label: 'Active', value: 'active' },
+		{ label: 'Round 1', value: 'round_1' },
+		{ label: 'Round 2', value: 'round_2' },
+		{ label: 'Round 3', value: 'round_3' },
+		{ label: 'Completed', value: 'completed' }
+	];
+	const statusOptions = STATUS_FILTERS.map((filter) => filter.label);
+	const statusParam = $derived(page.url.searchParams.get('status') ?? '');
+	const statusIndex = $derived.by(() => {
+		const index = STATUS_FILTERS.findIndex((filter) => filter.value === statusParam);
+		return index === -1 ? 0 : index;
+	});
+
+	function handleStatusChange(index: number): void {
+		const url = new URL(page.url);
+		const value = STATUS_FILTERS[index]?.value ?? '';
+		if (value) url.searchParams.set('status', value);
+		else url.searchParams.delete('status');
+		goto(`${url.pathname}${url.search}`, { keepFocus: true, noScroll: true, replaceState: true });
+	}
 </script>
 
 {#if data.user}
@@ -73,6 +112,20 @@
 					<h1>{headerTitle}</h1>
 				</div>
 				<div class="wbd-app-shell__actions">
+					{#if showSessionFilters}
+						<ActionSegmentedControl
+							class="wbd-app-shell__status-filter"
+							items={statusOptions}
+							selectedIndex={statusIndex}
+							onValueChange={handleStatusChange}
+						/>
+						<ActionSegmentedControl
+							class="wbd-app-shell__visibility-filter"
+							items={visibilityOptions}
+							selectedIndex={visibilityIndex}
+							onValueChange={handleVisibilityChange}
+						/>
+					{/if}
 					{#if showNewSessionAction}
 						<a class="wbd-app-shell__primary-action" href="/app/new">New session</a>
 					{/if}
@@ -184,6 +237,10 @@
 		justify-content: flex-end;
 		gap: 0.625rem;
 		min-width: 0;
+	}
+	:global(.wbd-app-shell__visibility-filter),
+	:global(.wbd-app-shell__status-filter) {
+		flex: 0 0 auto;
 	}
 	.wbd-app-shell__primary-action,
 	:global(.wbd-app-shell__signout button) {

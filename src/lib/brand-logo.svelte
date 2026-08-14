@@ -46,8 +46,11 @@
 		gap: 0.4em;
 		font-size: var(--brand-logo-size);
 		text-decoration: none;
-		color: var(--color-text-primary, #0f172a);
+		color: var(--brand-logo-text, #ffffff);
 		line-height: 1;
+	}
+	:global(html.light) .brand-logo {
+		--brand-logo-text: var(--color-text-primary, #0f172a);
 	}
 	.brand-logo__mark {
 		display: block;

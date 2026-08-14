@@ -1,8 +1,9 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { EXPERTS_BY_SESSION_SQL, generateId, generateToken, mapD1Error } from '$lib/server/wbd/db';
+import { EXPERTS_BY_SESSION_SQL, mapD1Error } from '$lib/server/wbd/db';
 import { requireSessionOwner } from '$lib/server/wbd/auth';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
+import { createSessionExpert } from '$lib/server/wbd/experts';
 
 export const GET: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
@@ -29,29 +30,7 @@ export const POST: RequestHandler = async ({ params, request, cookies, platform 
 	};
 
 	try {
-		const user = await db
-			.prepare(
-				`INSERT INTO wbd_users (id, email, name, company, role)
-				 VALUES (?1, ?2, ?3, ?4, 'expert')
-				 ON CONFLICT(email) DO UPDATE SET name = excluded.name, company = excluded.company
-				 RETURNING *`
-			)
-			.bind(generateId(), email, name?.trim() || email.split('@')[0], company ?? null)
-			.first<{ id: string }>();
-
-		const existingCount = await db
-			.prepare(`SELECT COUNT(*) AS n FROM wbd_session_experts WHERE session_id = ?1`)
-			.bind(params.id)
-			.first<{ n: number }>();
-
-		const result = await db
-			.prepare(
-				`INSERT INTO wbd_session_experts (id, session_id, user_id, token, alias)
-				 VALUES (?1, ?2, ?3, ?4, ?5)
-				 RETURNING *`
-			)
-			.bind(generateId(), params.id, user!.id, generateToken(), alias?.trim() || `Expert ${(existingCount?.n ?? 0) + 1}`)
-			.first<{ id: string }>();
+		const result = await createSessionExpert(db, params.id, { email, name, company, alias });
 
 		await recordAuditEvent(db, {
 			actorUserId: actor.id,

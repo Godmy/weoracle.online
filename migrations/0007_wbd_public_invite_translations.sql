@@ -1,0 +1,16 @@
+INSERT INTO wbd_translations (key, lang, value) VALUES
+('publicInvite.title', 'en', 'Join as an expert'),
+('publicInvite.title', 'ru', 'Присоединиться как эксперт'),
+('publicInvite.title', 'es', 'Únete como experto'),
+('publicInvite.lead', 'en', 'Give your name and email to get your own link to this poll — no password required.'),
+('publicInvite.lead', 'ru', 'Укажите имя и email, чтобы получить свою ссылку на этот опрос — пароль не нужен.'),
+('publicInvite.lead', 'es', 'Indica tu nombre y correo para obtener tu propio enlace a esta encuesta — sin contraseña.'),
+('publicInvite.nameLabel', 'en', 'Name'),
+('publicInvite.nameLabel', 'ru', 'Имя'),
+('publicInvite.nameLabel', 'es', 'Nombre'),
+('publicInvite.emailLabel', 'en', 'Email'),
+('publicInvite.emailLabel', 'ru', 'Email'),
+('publicInvite.emailLabel', 'es', 'Correo electrónico'),
+('publicInvite.submit', 'en', 'Join the poll'),
+('publicInvite.submit', 'ru', 'Присоединиться к опросу'),
+('publicInvite.submit', 'es', 'Unirse a la encuesta');

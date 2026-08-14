@@ -13,13 +13,30 @@
 		calculateWbdPert,
 		calculateWbdSpread,
 		type StructWbdTask,
-		type StructWbdParticipant,
 		type StructWbdEstimate,
-		type StructWbdRound,
 		type StructWbdRoundSummary,
-		type StructWbdPertResult,
-		type StructWbdDiscussionNote
+		type StructWbdPertResult
 	} from 'stylist-svelte';
+
+	type WbdParticipant = {
+		id: string;
+		displayName: string;
+		role: 'coordinator' | 'estimator' | 'observer';
+		hasSubmitted?: boolean;
+	};
+
+	type WbdRound = {
+		id: string;
+		index: number;
+		status: 'kickoff' | 'collecting' | 'discussing' | 'closed' | 'finalized';
+	};
+
+	type WbdDiscussionNote = {
+		id: string;
+		authorLabel: string;
+		message: string;
+		timestamp: string;
+	};
 
 	// --- WBS: 5 epics, 22 estimable leaf tasks ---
 	const epics: StructWbdTask[] = [
@@ -62,7 +79,7 @@
 	const estimableTaskIds = leafSeeds.map((task) => task.id);
 
 	// --- Participants ---
-	const participants: StructWbdParticipant[] = [
+	const participants: WbdParticipant[] = [
 		{ id: 'p1', displayName: 'Priya Desai', role: 'coordinator' },
 		{ id: 'p2', displayName: 'You', role: 'estimator' },
 		{ id: 'p3', displayName: 'Marcus Chen', role: 'estimator' },
@@ -92,9 +109,9 @@
 
 	// --- Live state ---
 	let myEstimates = $state<Record<string, StructWbdEstimate>>({});
-	let round = $state<StructWbdRound>({ id: 'r2', index: 1, status: 'collecting' });
+	let round = $state<WbdRound>({ id: 'r2', index: 1, status: 'collecting' });
 	let revealed = $state(true);
-	let notes = $state<StructWbdDiscussionNote[]>([
+	let notes = $state<WbdDiscussionNote[]>([
 		{
 			id: 'n1',
 			authorLabel: 'Marcus Chen',

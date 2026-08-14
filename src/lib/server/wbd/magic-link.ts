@@ -4,6 +4,8 @@ const KEY_PREFIX = 'magic-link:';
 interface MagicLinkPayload {
 	email: string;
 	name: string;
+	/** Present only for public-poll self-serve joins — which session the link grants access to. */
+	sessionId?: string;
 }
 
 // Structural subset of the real (ambient, unimported) KVNamespace type — see note in

@@ -3,16 +3,25 @@
 This document describes the authenticated application routes under
 `weoracle.online/src/routes/app`.
 
-All routes except `/app/sign-in` and `/app/verify` are protected by
-`+layout.server.ts`. The layout reads the `wbd_user` cookie through
-`getSessionUser`; unauthenticated users are redirected to
+All routes except `/app/sign-in`, `/app/magic-link`, and `/app/verify` are
+protected by `+layout.server.ts`. The layout reads the `wbd_user` cookie
+through `getSessionUser`; unauthenticated users are redirected to
 `/app/sign-in?next=...`.
+
+`/app/sign-in` shows nothing but a "Sign in" gate by default; clicking it
+reveals the admin (email + password) form via the `adminSignIn` action. It
+also links to `/app/magic-link` for facilitators/coordinators.
+`/app/magic-link` holds the passwordless name+email form (`requestLink`
+action) — reached directly from public poll links on the landing page (a
+specific poll's "open" CTA), so a facilitator invited into a given session
+never has to see the admin gate.
 
 The shared app shell lives in `+layout.svelte`. It renders the left navigation
 with `AdminSidebar` from `stylist-svelte`:
 
 - `Sessions` -> `/app`
 - `Questions` -> `/app/questions`
+- `Experts` -> `/app/experts`
 - `Estimates` -> `/app/estimates`
 - `Analytics` -> `/app/analytics`
 - `Discussions` -> `/app/discussions`
@@ -53,6 +62,29 @@ The page shows:
 
 For admins, the loader passes no `userId`, so the list includes all sessions.
 For non-admin users, the list is scoped to sessions created by the current user.
+
+## `/app/experts`
+
+The experts page is a cross-session expert assignment screen.
+
+`+page.server.ts` loads the available sessions through `GET /api/wbd/sessions`.
+For regular users it filters by `created_by={user.id}`. For admins it loads all
+sessions.
+
+The selected session is controlled by `?session={sessionId}`. After a session is
+selected, the page loads experts through `GET /api/wbd/sessions/{id}/experts`.
+
+The page shows:
+
+- a session selector;
+- total, joined, and invited expert counts;
+- `SessionExpertInvitePanel`;
+- invite, remove, and resend actions;
+- copyable invite links for the selected session.
+
+The session detail page links to this screen through
+`/app/experts?session={sessionId}` instead of rendering the expert assignment
+block inline.
 
 ## `/app/estimates`
 
@@ -118,13 +150,18 @@ The page shows:
 
 The new session page creates a Wideband Delphi session draft.
 
-The page uses `SessionSetupWizard` from `stylist-svelte`. On submit, it calls
-`POST /api/wbd/sessions` with the title, description, assumptions, and max round
-count. After successful creation it redirects to `/app/{created.id}`.
+The page uses `WbdEditSession` (`mode="create"`) from `stylist-svelte` — the same
+session settings organism used by `/app/[id]` for editing. On submit, it calls
+`POST /api/wbd/sessions` with the title, description, image URL, visibility,
+assumptions, and max round count. After successful creation it redirects to
+`/app/{created.id}`.
 
 ## `/app/[id]`
 
-The session detail page manages one Wideband Delphi session.
+The session detail page manages one Wideband Delphi session. It renders the same
+`WbdEditSession` organism (`mode="edit"`) as `/app/new`, wired to
+`PATCH /api/wbd/sessions/{id}`, plus lifecycle management (status, round actions,
+reset, delete) below it.
 
 `+page.server.ts` loads:
 

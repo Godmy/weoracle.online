@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { generateId, mapD1Error } from '$lib/server/wbd/db';
+import { generateUlid, mapD1Error } from '$lib/server/wbd/db';
 import { recordAuditEvent } from '$lib/server/wbd/audit';
 import { requireRole } from '$lib/server/wbd/auth';
 
@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request, cookies, platform }) => {
 				 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
 				 RETURNING *`
 			)
-			.bind(generateId(), title, description ?? null, imageUrl, isPublic, max_rounds ?? 3, assumptions ?? null, actor.id)
+			.bind(generateUlid(), title, description ?? null, imageUrl, isPublic, max_rounds ?? 3, assumptions ?? null, actor.id)
 			.first<{ id: string }>();
 
 		await recordAuditEvent(db, {

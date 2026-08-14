@@ -2,9 +2,15 @@
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Flag, Tooltip } from 'stylist-svelte';
-	import type { Language } from 'stylist-svelte';
 
 	const COOKIE = 'wbd_lang';
+
+	type Language = {
+		code: string;
+		name: string;
+		nativeName?: string;
+		flag: string;
+	};
 
 	const languages: Language[] = [
 		{ code: 'en', name: 'English', nativeName: 'English', flag: 'GB' },

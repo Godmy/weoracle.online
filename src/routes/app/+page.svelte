@@ -1,8 +1,21 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import type { WbdSessionRow } from '$lib/wbd/types';
 
 	let { data } = $props();
+
+	const visibility = $derived(page.url.searchParams.get('visibility'));
+	const status = $derived(page.url.searchParams.get('status'));
+	const sessions = $derived(
+		data.sessions.filter((session) => {
+			if (visibility === 'public' && session.is_public !== 1) return false;
+			if (visibility === 'private' && session.is_public !== 0) return false;
+			if (status && session.status !== status) return false;
+			return true;
+		})
+	);
+	const hasActiveFilter = $derived(Boolean(visibility || status));
 
 	function getSessionMeta(session: WbdSessionRow): string {
 		return `Round ${session.current_round}/${session.max_rounds} · ${session.expert_count ?? 0} experts · ${session.question_count ?? 0} questions`;
@@ -14,7 +27,7 @@
 </svelte:head>
 
 <section class="wbd-session-grid" aria-label="Sessions">
-	{#each data.sessions as session (session.id)}
+	{#each sessions as session (session.id)}
 		<a class="wbd-session-card" href={`/app/${session.id}`}>
 			<div class="wbd-session-card__media">
 				{#if session.image_url}
@@ -32,8 +45,12 @@
 		</a>
 	{:else}
 		<div class="wbd-session-empty">
-			No sessions yet.
-			<button type="button" onclick={() => goto('/app/new')}>New session</button>
+			{#if hasActiveFilter && data.sessions.length > 0}
+				No sessions match this filter.
+			{:else}
+				No sessions yet.
+				<button type="button" onclick={() => goto('/app/new')}>New session</button>
+			{/if}
 		</div>
 	{/each}
 </section>

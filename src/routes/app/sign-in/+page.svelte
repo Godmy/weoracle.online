@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import type { ActionData } from './$types';
 	import { t } from '$lib/i18n';
 	let { form }: { form: ActionData } = $props();
 
-	// Split around the placeholder ourselves so `form.email` stays plain-text-interpolated
-	// (Svelte-escaped) instead of going through `{@html}` with attacker-controllable input.
-	const checkEmailParts = $derived(t('signIn.check.body').split('{email}'));
+	let showAdminForm = $state(Boolean(form?.message));
+
+	const next = $derived(page.url.searchParams.get('next'));
+	const magicLinkHref = $derived(next ? `/app/magic-link?next=${encodeURIComponent(next)}` : '/app/magic-link');
 </script>
 
 <svelte:head>
@@ -13,29 +15,15 @@
 </svelte:head>
 
 <div class="wbd-sign-in">
-	{#if form?.sent}
+	{#if !showAdminForm}
 		<div class="wbd-sign-in__form">
-			<h1>{t('signIn.check.title')}</h1>
-			<p>{checkEmailParts[0]}<strong>{form.email}</strong>{checkEmailParts[1]}</p>
+			<h1>{t('signIn.gate.title')}</h1>
+			<p>{t('signIn.gate.lead')}</p>
+			<button type="button" onclick={() => (showAdminForm = true)}>{t('signIn.gate.cta')}</button>
+			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}>{t('signIn.gate.facilitatorLink')}</a>
 		</div>
 	{:else}
-		<form method="POST" action="?/requestLink" class="wbd-sign-in__form">
-			<h1>{t('signIn.form.title')}</h1>
-			<p>{t('signIn.form.lead')}</p>
-			{#if form?.message}
-				<p class="wbd-sign-in__error">{form.message}</p>
-			{/if}
-			<label>
-				<span>{t('signIn.form.nameLabel')}</span>
-				<input name="name" type="text" required autocomplete="name" />
-			</label>
-			<label>
-				<span>{t('signIn.form.emailLabel')}</span>
-				<input name="email" type="email" required autocomplete="email" />
-			</label>
-			<button type="submit">{t('signIn.form.submit')}</button>
-		</form>
-		<form method="POST" action="?/adminSignIn" class="wbd-sign-in__form wbd-sign-in__form--admin">
+		<form method="POST" action="?/adminSignIn" class="wbd-sign-in__form">
 			<h2>{t('signIn.admin.title')}</h2>
 			<p>{t('signIn.admin.lead')}</p>
 			{#if form?.message}
@@ -50,6 +38,7 @@
 				<input name="password" type="password" required autocomplete="current-password" />
 			</label>
 			<button type="submit">{t('signIn.admin.submit')}</button>
+			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}>{t('signIn.gate.facilitatorLink')}</a>
 		</form>
 	{/if}
 </div>
@@ -60,8 +49,6 @@
 		display: grid;
 		align-items: center;
 		justify-content: center;
-		grid-template-columns: repeat(2, minmax(0, 22rem));
-		gap: 1rem;
 		padding: 2rem;
 	}
 	.wbd-sign-in__form {
@@ -74,9 +61,6 @@
 		border: 1px solid var(--color-border-primary, #e2e8f0);
 		border-radius: 0.75rem;
 		background: var(--color-background-primary, #fff);
-	}
-	.wbd-sign-in__form--admin {
-		background: var(--color-background-secondary, #f8fafc);
 	}
 	.wbd-sign-in__form h1,
 	.wbd-sign-in__form h2 {
@@ -121,9 +105,10 @@
 		font-weight: 600;
 		cursor: pointer;
 	}
-	@media (max-width: 760px) {
-		.wbd-sign-in {
-			grid-template-columns: 1fr;
-		}
+	.wbd-sign-in__facilitator-link {
+		text-align: center;
+		font-size: 0.75rem;
+		color: var(--color-text-tertiary, #64748b);
+		text-decoration: underline;
 	}
 </style>

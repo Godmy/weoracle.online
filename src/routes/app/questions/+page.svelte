@@ -27,7 +27,9 @@
 			const localQuestion = untrack(() => localQuestions.find((item) => item.id === question.id));
 			return localQuestion ? { ...question, ...localQuestion } : question;
 		});
-		selectedQuestionId = localQuestions.find((question) => question.id === selectedQuestionId)?.id ?? localQuestions[0]?.id ?? '';
+		selectedQuestionId = untrack(
+			() => localQuestions.find((question) => question.id === selectedQuestionId)?.id ?? localQuestions[0]?.id ?? ''
+		);
 	});
 
 	async function selectSession(sessionId: string) {
@@ -148,26 +150,24 @@
 			</select>
 		</label>
 		{#if selectedSession}
-			<a href={`/app/${selectedSession.id}`}>Session settings</a>
+			<div class="wbd-questions-page__meta">
+				<article class="wbd-questions-page__stat">
+					<span>Session status</span>
+					<strong>{selectedSession.status}</strong>
+				</article>
+				<article class="wbd-questions-page__stat">
+					<span>Required</span>
+					<strong>{totalRequired}</strong>
+				</article>
+				<article class="wbd-questions-page__stat">
+					<span>Total questions</span>
+					<strong>{localQuestions.length}</strong>
+				</article>
+			</div>
 		{/if}
 	</section>
 
 	{#if selectedSession}
-		<section class="wbd-questions-page__summary">
-			<article>
-				<span>Total questions</span>
-				<strong>{localQuestions.length}</strong>
-			</article>
-			<article>
-				<span>Required</span>
-				<strong>{totalRequired}</strong>
-			</article>
-			<article>
-				<span>Session status</span>
-				<strong>{selectedSession.status}</strong>
-			</article>
-		</section>
-
 		<section class="wbd-questions-page__editor">
 			<SessionQuestionEditor
 				{questions}
@@ -201,16 +201,16 @@
 	}
 	.wbd-questions-page__toolbar {
 		display: flex;
-		align-items: end;
-		justify-content: space-between;
-		gap: 1rem;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1rem;
 	}
-	.wbd-questions-page__toolbar label {
+	.wbd-questions-page__toolbar > label {
 		display: grid;
 		gap: 0.375rem;
-		width: min(100%, 28rem);
+		width: min(100%, 20rem);
 	}
-	.wbd-questions-page__toolbar span {
+	.wbd-questions-page__toolbar > label > span {
 		color: var(--color-text-secondary, #64748b);
 		font-size: 0.8125rem;
 		font-weight: 700;
@@ -225,13 +225,20 @@
 		font: inherit;
 		padding: 0 0.75rem;
 	}
-	.wbd-questions-page__toolbar a,
+	.wbd-questions-page__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		margin-left: auto;
+	}
 	.wbd-questions-page__empty a {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.5rem;
-		padding: 0 0.75rem;
+		height: 2.75rem;
+		box-sizing: border-box;
+		padding: 0 0.875rem;
 		border: 1px solid var(--color-border-primary, #cbd5e1);
 		border-radius: 0.375rem;
 		background: var(--color-background-primary, #fff);
@@ -239,28 +246,29 @@
 		font-size: 0.8125rem;
 		font-weight: 700;
 		text-decoration: none;
+		white-space: nowrap;
 	}
-	.wbd-questions-page__summary {
+	.wbd-questions-page__stat {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.75rem;
-	}
-	.wbd-questions-page__summary article {
+		align-content: center;
+		gap: 0.125rem;
+		height: 2.75rem;
+		box-sizing: border-box;
 		border: 1px solid var(--color-border-primary, #e2e8f0);
-		border-radius: 0.5rem;
-		background: var(--color-background-secondary, #f8fafc);
-		padding: 1rem;
+		border-radius: 0.375rem;
+		background: var(--color-background-primary, #fff);
+		padding: 0 0.875rem;
 	}
-	.wbd-questions-page__summary span {
-		display: block;
+	.wbd-questions-page__stat span {
 		color: var(--color-text-secondary, #64748b);
-		font-size: 0.8125rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		white-space: nowrap;
 	}
-	.wbd-questions-page__summary strong {
-		display: block;
-		margin-top: 0.375rem;
+	.wbd-questions-page__stat strong {
 		color: var(--color-text-primary, #0f172a);
-		font-size: 1.25rem;
+		font-size: 0.9375rem;
+		line-height: 1;
 	}
 	.wbd-questions-page__empty {
 		display: flex;
@@ -278,8 +286,15 @@
 			align-items: stretch;
 			flex-direction: column;
 		}
-		.wbd-questions-page__summary {
-			grid-template-columns: 1fr;
+		.wbd-questions-page__toolbar > label {
+			width: 100%;
+		}
+		.wbd-questions-page__meta {
+			margin-left: 0;
+		}
+		.wbd-questions-page__meta,
+		.wbd-questions-page__stat {
+			flex: 1 1 auto;
 		}
 	}
 </style>

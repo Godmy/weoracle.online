@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { createMagicLinkToken, magicLinkEmailHtml, magicLinkEmailText } from '$lib/server/wbd/magic-link';
-import { sendEmailViaResend } from '$lib/server/wbd/resend';
+import { ManagerMagicLink } from '$lib/server/class/manager/magic-link';
+import { ManagerEmail } from '$lib/server/class/manager/email';
 
 const COOKIE = 'wbd_user';
 const FROM = { email: 'login@weoracle.online', name: 'WeOracle' };
@@ -22,18 +22,18 @@ export const actions: Actions = {
 			return fail(400, { message: 'Email and name are required' });
 		}
 
-		const token = await createMagicLinkToken(platform!.env.KV, { email, name });
+		const token = await ManagerMagicLink.create(platform!.env.KV, { email, name });
 		const link = `${url.origin}/app/verify?token=${token}${url.searchParams.get('next') ? `&next=${encodeURIComponent(url.searchParams.get('next')!)}` : ''}`;
 
 		const apiKey = platform!.env.RESEND_API_KEY;
 		if (!apiKey) error(500, 'Email sending is not configured');
 		try {
-			await sendEmailViaResend(apiKey, {
+			await ManagerEmail.send(apiKey, {
 				to: email,
 				from: FROM,
 				subject: 'Sign in to WeOracle',
-				html: magicLinkEmailHtml(link),
-				text: magicLinkEmailText(link)
+				html: ManagerMagicLink.emailHtml(link),
+				text: ManagerMagicLink.emailText(link)
 			});
 		} catch (err) {
 			// Surface the real Resend error in `wrangler tail` — the message returned to the

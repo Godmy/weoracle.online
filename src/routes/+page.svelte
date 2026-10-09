@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import BrandLogo from '$lib/brand-logo.svelte';
-	import LanguageControl from '$lib/wbd/language-control.svelte';
-	import { ObjectLanding } from '$lib/i18n/const/object/landing';
+	import BrandLogo from '$lib/brand/component/molecule/logo/index.svelte';
+	import LanguageControl from '$lib/i18n/component/molecule/language/index.svelte';
+	import { RecordLandingTranslation } from '$lib/i18n/const/record/landing';
 	import WbdLandingPage from '$stylist/wbd/component/template/wbd-landing-page/index.svelte';
 
 	type PublicPoll = {
@@ -24,14 +24,18 @@
 			hero: 'Аналитическая комната принятия решений с панелью экспертного консенсуса',
 			definition: 'Схема сведения независимых экспертных прогнозов в единую воронку консенсуса',
 			workflow: 'Схема сужения оценок экспертов по раундам Wideband Delphi к устойчивому диапазону',
-			intro: 'Историческая комната прогнозирования с картой мира и постами аналитиков — истоки метода Дельфи',
+			intro:
+				'Историческая комната прогнозирования с картой мира и постами аналитиков — истоки метода Дельфи',
 			result: 'Цифровой документ для принятия решения с диапазонами, рисками и итоговым консенсусом'
 		},
 		en: {
 			hero: 'Analytics decision room with an expert consensus dashboard',
-			definition: 'Diagram of independent expert forecasts converging into a single consensus funnel',
-			workflow: 'Diagram of expert estimates narrowing round by round in Wideband Delphi to a stable range',
-			intro: 'A historic forecasting war room with a world map and analyst desks — the origins of the Delphi method',
+			definition:
+				'Diagram of independent expert forecasts converging into a single consensus funnel',
+			workflow:
+				'Diagram of expert estimates narrowing round by round in Wideband Delphi to a stable range',
+			intro:
+				'A historic forecasting war room with a world map and analyst desks — the origins of the Delphi method',
 			result: 'Digital decision brief with ranges, risks, and the final consensus'
 		},
 		es: {
@@ -40,13 +44,14 @@
 				'Diagrama de pronósticos expertos independientes convergiendo en un único embudo de consenso',
 			workflow:
 				'Diagrama de estimaciones expertas que se estrechan ronda a ronda en Wideband Delphi hasta un rango estable',
-			intro: 'Una sala de pronóstico histórica con un mapa mundial y puestos de analistas — los orígenes del método Delphi',
+			intro:
+				'Una sala de pronóstico histórica con un mapa mundial y puestos de analistas — los orígenes del método Delphi',
 			result: 'Brief de decisión digital con rangos, riesgos y el consenso final'
 		}
 	};
 
 	const currentLang = $derived((page.data as { lang?: string }).lang ?? 'en');
-	const content = $derived(ObjectLanding[currentLang] ?? ObjectLanding.en);
+	const content = $derived(RecordLandingTranslation[currentLang] ?? RecordLandingTranslation.en);
 	const alt = $derived(imageAlt[currentLang] ?? imageAlt.en);
 	const fallbackPublicPolls = $derived.by((): PublicPoll[] => {
 		if (currentLang === 'ru') {

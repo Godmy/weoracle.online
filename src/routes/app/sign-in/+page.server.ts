@@ -1,8 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { constantTimeEqualStrings } from '$lib/server/wbd/crypto';
-import { generateId, mapD1Error } from '$lib/server/wbd/db';
-import type { WbdUser } from '$lib/wbd/types';
+import { constantTimeEqualStrings } from '$lib/server/function/crypto/constant-time-equal-strings';
+import { generateId } from '$lib/server/function/generate/id';
+import { mapD1Error } from '$lib/server/function/transform/map-d1-error';
+import type { WbdUser } from '$lib/server/interface/db/user';
 
 // Structural subset of the real (ambient, unimported) KVNamespace type — see the note in
 // src/lib/server/wbd/db.ts about why bindings are accessed without importing global Workers types.
@@ -26,7 +27,9 @@ export const load: PageServerLoad = ({ cookies, url }) => {
 export const actions: Actions = {
 	adminSignIn: async ({ request, url, platform, cookies, getClientAddress }) => {
 		const form = await request.formData();
-		const email = String(form.get('email') ?? '').trim().toLowerCase();
+		const email = String(form.get('email') ?? '')
+			.trim()
+			.toLowerCase();
 		const password = String(form.get('password') ?? '');
 		const env = platform!.env as {
 			ADMIN_EMAIL?: string;
@@ -59,7 +62,9 @@ export const actions: Actions = {
 			constantTimeEqualStrings(password, adminPassword)
 		]);
 		if (!emailMatches || !passwordMatches) {
-			await env.KV.put(rateLimitKey, String(failCount + 1), { expirationTtl: ADMIN_LOGIN_LOCKOUT_SECONDS });
+			await env.KV.put(rateLimitKey, String(failCount + 1), {
+				expirationTtl: ADMIN_LOGIN_LOCKOUT_SECONDS
+			});
 			return fail(401, { message: 'Invalid admin credentials' });
 		}
 		await env.KV.delete(rateLimitKey);

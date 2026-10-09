@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import type { ActionData } from './$types';
-	import { t } from '$lib/i18n';
+	import { t } from '$lib/i18n/function/translate';
 	let { form }: { form: ActionData } = $props();
 
 	let showAdminForm = $state(Boolean(form?.message));
 
 	const next = $derived(page.url.searchParams.get('next'));
-	const magicLinkHref = $derived(next ? `/app/magic-link?next=${encodeURIComponent(next)}` : '/app/magic-link');
+	const magicLinkHref = $derived(
+		next ? `/app/magic-link?next=${encodeURIComponent(next)}` : '/app/magic-link'
+	);
 </script>
 
 <svelte:head>
@@ -20,7 +22,9 @@
 			<h1>{t('signIn.gate.title')}</h1>
 			<p>{t('signIn.gate.lead')}</p>
 			<button type="button" onclick={() => (showAdminForm = true)}>{t('signIn.gate.cta')}</button>
-			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}>{t('signIn.gate.facilitatorLink')}</a>
+			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}
+				>{t('signIn.gate.facilitatorLink')}</a
+			>
 		</div>
 	{:else}
 		<form method="POST" action="?/adminSignIn" class="wbd-sign-in__form">
@@ -38,7 +42,9 @@
 				<input name="password" type="password" required autocomplete="current-password" />
 			</label>
 			<button type="submit">{t('signIn.admin.submit')}</button>
-			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}>{t('signIn.gate.facilitatorLink')}</a>
+			<a class="wbd-sign-in__facilitator-link" href={magicLinkHref}
+				>{t('signIn.gate.facilitatorLink')}</a
+			>
 		</form>
 	{/if}
 </div>

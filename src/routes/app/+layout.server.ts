@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { getSessionUser } from '$lib/server/wbd/auth';
+import { ManagerAuth } from '$lib/server/class/manager/auth';
 
 export const load: LayoutServerLoad = ({ cookies, url }) => {
-	const user = getSessionUser(cookies);
+	const user = ManagerAuth.getSessionUser(cookies);
 
 	if (
 		!user &&

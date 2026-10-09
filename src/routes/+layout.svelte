@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { ThemeProvider } from 'stylist-svelte';
+	import ThemeProvider from '$stylist/theme/component/atom/theme-provider/index.svelte';
 
 	let { data, children } = $props();
 

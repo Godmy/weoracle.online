@@ -1,31 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireRole } from '$lib/server/wbd/auth';
+import { ManagerAuth } from '$lib/server/class/manager/auth';
+import { ManagerAuditLog } from '$lib/server/class/manager/audit-log';
 
 export const GET: RequestHandler = async ({ url, cookies, platform }) => {
-	requireRole(cookies, ['admin']);
-
-	const sessionId = url.searchParams.get('sessionId');
+	ManagerAuth.requireRole(cookies, ['admin']);
 	const db = platform!.env.DB;
-	const query = sessionId
-		? db
-				.prepare(
-					`SELECT al.*, u.name AS actor_name, u.email AS actor_email
-					 FROM wbd_audit_log al
-					 LEFT JOIN wbd_users u ON u.id = al.actor_user_id
-					 WHERE al.session_id = ?1
-					 ORDER BY al.created_at DESC
-					 LIMIT 200`
-				)
-				.bind(sessionId)
-		: db.prepare(
-				`SELECT al.*, u.name AS actor_name, u.email AS actor_email
-				 FROM wbd_audit_log al
-				 LEFT JOIN wbd_users u ON u.id = al.actor_user_id
-				 ORDER BY al.created_at DESC
-				 LIMIT 200`
-			);
-
-	const { results } = await query.all();
-	return json(results);
+	const entries = await ManagerAuditLog.list(db, url.searchParams.get('sessionId'));
+	return json(entries);
 };

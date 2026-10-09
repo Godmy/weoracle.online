@@ -1,73 +1,47 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { mapD1Error } from '$lib/server/wbd/db';
-import { requireQuestionOwner } from '$lib/server/wbd/auth';
-
-const TYPES = ['numeric', 'percentage', 'boolean'] as const;
-const PATCHABLE_COLUMNS = new Set(['text', 'category', 'type', 'unit', 'min_value', 'max_value', 'required']);
-
-// Accepts either snake_case (API convention) or the camelCase fields the stylist-svelte
-// question editor sends straight from its StructWbdQuestion state.
-function normalizeBody(body: Record<string, unknown>) {
-	const map: Record<string, string> = {
-		category: 'category',
-		text: 'text',
-		type: 'type',
-		unit: 'unit',
-		minValue: 'min_value',
-		min_value: 'min_value',
-		maxValue: 'max_value',
-		max_value: 'max_value',
-		required: 'required'
-	};
-	const out: Record<string, unknown> = {};
-	for (const [key, value] of Object.entries(body)) {
-		const column = map[key];
-		if (!column || !PATCHABLE_COLUMNS.has(column)) continue;
-		out[column] = column === 'required' ? (value ? 1 : 0) : value;
-	}
-	return out;
-}
+import { ManagerAuth } from '$lib/server/class/manager/auth';
+import { ManagerQuestion } from '$lib/server/class/manager/question';
 
 export const PATCH: RequestHandler = async ({ params, request, cookies, platform }) => {
 	const db = platform!.env.DB;
-	await requireQuestionOwner(cookies, db, params.id);
+	await ManagerAuth.requireQuestionOwner(cookies, db, params.id);
 
-	const body = await request.json().catch(() => null);
-	if (!body || typeof body !== 'object') error(400, 'Invalid body');
+	const rawBody = await request.json().catch(() => null);
+	if (!rawBody || typeof rawBody !== 'object') error(400, 'Invalid body');
+	const body = rawBody as Record<string, unknown>;
 
-	const normalized = normalizeBody(body as Record<string, unknown>);
-	if ('type' in normalized && !TYPES.includes(normalized.type as (typeof TYPES)[number])) {
-		error(400, `type must be one of ${TYPES.join(', ')}`);
+	// The editor sends the nested `media` shape from StructWbdQuestion (or `null` to clear it);
+	// normalizePatch only understands flat mediaKind/mediaUrl/... columns.
+	if ('media' in body) {
+		const media = body.media as
+			| { kind?: string; url?: string; caption?: string; requireViewed?: boolean }
+			| null
+			| undefined;
+		body.mediaKind = media?.kind ?? null;
+		body.mediaUrl = media?.url ?? null;
+		body.mediaCaption = media?.caption ?? null;
+		body.mediaRequireViewed = media?.requireViewed ?? false;
 	}
 
-	const entries = Object.entries(normalized);
-	if (entries.length === 0) error(400, `No patchable fields provided (${[...PATCHABLE_COLUMNS].join(', ')})`);
-
-	const setClause = entries.map(([key], i) => `${key} = ?${i + 1}`).join(', ');
-	const values = entries.map(([, value]) => value);
-
-	try {
-		const result = await db
-			.prepare(`UPDATE wbd_questions SET ${setClause} WHERE id = ?${entries.length + 1} RETURNING *`)
-			.bind(...values, params.id)
-			.first();
-		if (!result) error(404, 'Question not found');
-		return json(result);
-	} catch (err) {
-		const { status, message } = mapD1Error(err);
-		error(status, message);
-	}
+	const normalized = ManagerQuestion.normalizePatch(body);
+	const rawOptions = body.options;
+	const options = Array.isArray(rawOptions)
+		? (rawOptions as { label: string; description?: string; image_url?: string; imageUrl?: string }[]).map(
+				(option) => ({
+					label: option.label,
+					description: option.description,
+					image_url: option.image_url ?? option.imageUrl
+				})
+			)
+		: undefined;
+	const result = await ManagerQuestion.patchAndLoad(db, params.id, normalized, options);
+	return json(result);
 };
 
 export const DELETE: RequestHandler = async ({ params, cookies, platform }) => {
 	const db = platform!.env.DB;
-	await requireQuestionOwner(cookies, db, params.id);
-
-	const result = await db
-		.prepare(`DELETE FROM wbd_questions WHERE id = ?1 RETURNING id`)
-		.bind(params.id)
-		.first();
-	if (!result) error(404, 'Question not found');
+	await ManagerAuth.requireQuestionOwner(cookies, db, params.id);
+	await ManagerQuestion.delete(db, params.id);
 	return json({ id: params.id });
 };

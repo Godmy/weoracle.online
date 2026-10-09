@@ -1,16 +1,13 @@
 <script lang="ts">
-	import {
-		ConfidenceDistributionChart,
-		ConsensusReviewBoard,
-		DisagreementPromptCard,
-		DiscussionMessageThread,
-		ExportResultsPanel,
-		RationaleDigest,
-		ResponseDistributionChart,
-		RoundSnapshotBoard
-	} from 'stylist-svelte';
-	import { toStructDiscussionMessage } from '$lib/wbd/map';
-	import type { WbdDiscussionMessageRow } from '$lib/wbd/types';
+	import ConfidenceDistributionChart from '$stylist/wbd/component/organism/confidence-distribution-chart/index.svelte';
+	import ConsensusReviewBoard from '$stylist/wbd/component/organism/consensus-review-board/index.svelte';
+	import DisagreementPromptCard from '$stylist/wbd/component/molecule/disagreement-prompt-card/index.svelte';
+	import DiscussionMessageThread from '$stylist/wbd/component/molecule/discussion-message-thread/index.svelte';
+	import ExportResultsPanel from '$stylist/wbd/component/organism/export-results-panel/index.svelte';
+	import RationaleDigest from '$stylist/wbd/component/organism/rationale-digest/index.svelte';
+	import ResponseDistributionChart from '$stylist/wbd/component/organism/response-distribution-chart/index.svelte';
+	import RoundSnapshotBoard from '$stylist/wbd/component/organism/round-snapshot-board/index.svelte';
+	import type { StructWbdDiscussionMessage } from '$stylist/wbd/type/object/discussion-message';
 
 	let { data } = $props();
 
@@ -26,13 +23,13 @@
 				questionId: question.id,
 				questionText: question.text,
 				category: question.category ?? undefined,
-				consensusLevel: snapshot?.consensus_level ?? 'low',
-				countResponses: snapshot?.count_responses ?? answers.length,
+				consensusLevel: snapshot?.consensusLevel ?? 'low',
+				countResponses: snapshot?.countResponses ?? answers.length,
 				median: snapshot?.median ?? undefined,
 				q1: snapshot?.q1 ?? undefined,
 				q3: snapshot?.q3 ?? undefined,
-				minValue: snapshot?.min_value ?? undefined,
-				maxValue: snapshot?.max_value ?? undefined,
+				minValue: snapshot?.minValue ?? undefined,
+				maxValue: snapshot?.maxValue ?? undefined,
 				rationaleCount: answers.filter((a) => a.rationale).length
 			};
 		})
@@ -45,10 +42,14 @@
 		const counts = new Map<number, number>([1, 2, 3, 4, 5].map((c) => [c, 0]));
 		for (const answers of Object.values(data.roundView.answersByQuestion)) {
 			for (const answer of answers) {
-				if (answer.confidence != null) counts.set(answer.confidence, (counts.get(answer.confidence) ?? 0) + 1);
+				if (answer.confidence != null)
+					counts.set(answer.confidence, (counts.get(answer.confidence) ?? 0) + 1);
 			}
 		}
-		return [1, 2, 3, 4, 5].map((confidence) => ({ confidence: confidence as 1 | 2 | 3 | 4 | 5, count: counts.get(confidence) ?? 0 }));
+		return [1, 2, 3, 4, 5].map((confidence) => ({
+			confidence: confidence as 1 | 2 | 3 | 4 | 5,
+			count: counts.get(confidence) ?? 0
+		}));
 	});
 
 	const selectedQuestionResponseBins = $derived.by(() => {
@@ -74,7 +75,9 @@
 	});
 
 	const snapshots = $derived(
-		Object.values(data.roundView.snapshotByQuestion).filter((s): s is NonNullable<typeof s> => Boolean(s))
+		Object.values(data.roundView.snapshotByQuestion).filter((s): s is NonNullable<typeof s> =>
+			Boolean(s)
+		)
 	);
 
 	const rationaleItems = $derived(
@@ -85,10 +88,11 @@
 					id: answer.id,
 					questionId: question.id,
 					questionText: question.text,
-					roundNumber: answer.round_number,
+					roundNumber: answer.roundNumber,
 					rationale: answer.rationale as string,
 					confidence: answer.confidence ?? undefined,
-					consensusLevel: data.roundView.snapshotByQuestion[question.id]?.consensus_level ?? undefined
+					consensusLevel:
+						data.roundView.snapshotByQuestion[question.id]?.consensusLevel ?? undefined
 				}))
 		)
 	);
@@ -117,13 +121,13 @@
 				return [
 					JSON.stringify(q.text),
 					q.category ?? '',
-					s?.count_responses ?? 0,
+					s?.countResponses ?? 0,
 					s?.median ?? '',
 					s?.q1 ?? '',
 					s?.q3 ?? '',
-					s?.min_value ?? '',
-					s?.max_value ?? '',
-					s?.consensus_level ?? ''
+					s?.minValue ?? '',
+					s?.maxValue ?? '',
+					s?.consensusLevel ?? ''
 				].join(',');
 			});
 			download(`${base}.csv`, [header, ...rows].join('\n'), 'text/csv');
@@ -132,7 +136,7 @@
 		}
 	}
 
-	let discussionMessages = $state<WbdDiscussionMessageRow[]>([]);
+	let discussionMessages = $state<StructWbdDiscussionMessage[]>([]);
 	$effect(() => {
 		if (!selectedQuestionId) {
 			discussionMessages = [];
@@ -148,30 +152,19 @@
 	<title>Round {data.round} — {data.roundView.session.title} — WeOracle</title>
 </svelte:head>
 
-<a href={`/app/${data.roundView.session.id}`} class="wbd-back">&larr; {data.roundView.session.title}</a>
+<a href={`/app/${data.roundView.session.id}`} class="wbd-back"
+	>&larr; {data.roundView.session.title}</a
+>
 <h1>Round {data.round} results</h1>
 
 <section>
 	<h2>Snapshots</h2>
 	{#if snapshots.length === 0}
-		<p class="wbd-hint">No snapshot computed yet — use "Compute round results" on the session page.</p>
+		<p class="wbd-hint">
+			No snapshot computed yet — use "Compute round results" on the session page.
+		</p>
 	{:else}
-		<RoundSnapshotBoard
-			snapshots={snapshots.map((s) => ({
-				id: s.id,
-				sessionId: s.session_id,
-				roundNumber: s.round_number,
-				questionId: s.question_id,
-				countResponses: s.count_responses,
-				median: s.median ?? undefined,
-				q1: s.q1 ?? undefined,
-				q3: s.q3 ?? undefined,
-				minValue: s.min_value ?? undefined,
-				maxValue: s.max_value ?? undefined,
-				consensusLevel: s.consensus_level ?? undefined
-			}))}
-			{questionLabels}
-		/>
+		<RoundSnapshotBoard {snapshots} {questionLabels} />
 	{/if}
 </section>
 
@@ -188,7 +181,10 @@
 
 <section>
 	<h2>Consensus by question</h2>
-	<ConsensusReviewBoard items={consensusItems} onSelectQuestion={(id) => (selectedQuestionId = id)} />
+	<ConsensusReviewBoard
+		items={consensusItems}
+		onSelectQuestion={(id) => (selectedQuestionId = id)}
+	/>
 </section>
 
 {#if rationaleItems.length > 0}
@@ -215,7 +211,7 @@
 		{#if selectedQuestionResponseBins.length > 0}
 			<ResponseDistributionChart bins={selectedQuestionResponseBins} title="Realistic estimates" />
 		{/if}
-		<DiscussionMessageThread messages={discussionMessages.map((m) => toStructDiscussionMessage(m))} />
+		<DiscussionMessageThread messages={discussionMessages} />
 	{/if}
 </section>
 

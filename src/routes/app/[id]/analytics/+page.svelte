@@ -1,20 +1,25 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { MedianTrendChart, PermissionDeniedPanel, QuestionConsensusMatrix, RoundComparisonPanel } from 'stylist-svelte';
+	import MedianTrendChart from '$stylist/wbd/component/organism/median-trend-chart/index.svelte';
+	import PermissionDeniedPanel from '$stylist/wbd/component/organism/permission-denied-panel/index.svelte';
+	import QuestionConsensusMatrix from '$stylist/wbd/component/organism/question-consensus-matrix/index.svelte';
+	import RoundComparisonPanel from '$stylist/wbd/component/organism/round-comparison-panel/index.svelte';
 
 	let { data } = $props();
 
 	const questionText = $derived(new Map(data.session.questions.map((q) => [q.id, q.text])));
-	const rounds = $derived([...new Set(data.snapshots.map((s) => s.round_number))].sort((a, b) => a - b));
+	const rounds = $derived(
+		[...new Set(data.snapshots.map((s) => s.roundNumber))].sort((a, b) => a - b)
+	);
 
 	const cells = $derived(
 		data.snapshots
-			.filter((s) => s.consensus_level != null)
+			.filter((s) => s.consensusLevel != null)
 			.map((s) => ({
-				questionId: s.question_id,
-				questionText: questionText.get(s.question_id) ?? s.question_id,
-				roundNumber: s.round_number,
-				consensusLevel: s.consensus_level as 'high' | 'medium' | 'low'
+				questionId: s.questionId,
+				questionText: questionText.get(s.questionId) ?? s.questionId,
+				roundNumber: s.roundNumber,
+				consensusLevel: s.consensusLevel as 'high' | 'medium' | 'low'
 			}))
 	);
 
@@ -27,9 +32,9 @@
 
 	const trendPoints = $derived(
 		data.snapshots
-			.filter((s) => s.question_id === selectedQuestionId && s.median != null)
-			.sort((a, b) => a.round_number - b.round_number)
-			.map((s) => ({ roundNumber: s.round_number, value: s.median as number }))
+			.filter((s) => s.questionId === selectedQuestionId && s.median != null)
+			.sort((a, b) => a.roundNumber - b.roundNumber)
+			.map((s) => ({ roundNumber: s.roundNumber, value: s.median as number }))
 	);
 
 	const previousRound = $derived(rounds.length >= 2 ? rounds[rounds.length - 2] : undefined);
@@ -40,18 +45,18 @@
 			? []
 			: data.session.questions.map((question) => {
 					const previous = data.snapshots.find(
-						(s) => s.question_id === question.id && s.round_number === previousRound
+						(s) => s.questionId === question.id && s.roundNumber === previousRound
 					);
 					const current = data.snapshots.find(
-						(s) => s.question_id === question.id && s.round_number === currentRound
+						(s) => s.questionId === question.id && s.roundNumber === currentRound
 					);
 					return {
 						questionId: question.id,
 						questionText: question.text,
 						previousMedian: previous?.median ?? undefined,
 						currentMedian: current?.median ?? undefined,
-						previousConsensus: previous?.consensus_level ?? undefined,
-						currentConsensus: current?.consensus_level ?? undefined
+						previousConsensus: previous?.consensusLevel ?? undefined,
+						currentConsensus: current?.consensusLevel ?? undefined
 					};
 				})
 	);
@@ -71,7 +76,9 @@
 		onGoBack={() => goto('/app')}
 	/>
 {:else if rounds.length === 0}
-	<p class="wbd-hint">No round snapshots yet — compute round results from the session page first.</p>
+	<p class="wbd-hint">
+		No round snapshots yet — compute round results from the session page first.
+	</p>
 {:else}
 	<h1>Analytics</h1>
 

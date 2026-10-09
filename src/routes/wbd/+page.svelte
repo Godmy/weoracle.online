@@ -1,22 +1,20 @@
 <script lang="ts">
-	import {
-		SessionHeader,
-		ParticipantRosterList,
-		RoundCollectionPanel,
-		FacilitatorControlPanel,
-		RoundSummaryTable,
-		EstimateRangeChart,
-		ConvergenceChart,
-		DiscussionThread,
-		WbsTree,
-		FinalEstimateReport,
-		calculateWbdPert,
-		calculateWbdSpread,
-		type StructWbdTask,
-		type StructWbdEstimate,
-		type StructWbdRoundSummary,
-		type StructWbdPertResult
-	} from 'stylist-svelte';
+	import { SessionHeader } from '$stylist/wbd/component/organism/session-header';
+	import { ParticipantRosterList } from '$stylist/wbd/component/molecule/participant-roster-list';
+	import { RoundCollectionPanel } from '$stylist/wbd/component/organism/round-collection-panel';
+	import { FacilitatorControlPanel } from '$stylist/wbd/component/organism/facilitator-control-panel';
+	import { RoundSummaryTable } from '$stylist/wbd/component/organism/round-summary-table';
+	import { EstimateRangeChart } from '$stylist/wbd/component/organism/estimate-range-chart';
+	import { ConvergenceChart } from '$stylist/wbd/component/organism/convergence-chart';
+	import { DiscussionThread } from '$stylist/wbd/component/organism/discussion-thread';
+	import { WbsTree } from '$stylist/wbd/component/organism/wbs-tree';
+	import { FinalEstimateReport } from '$stylist/wbd/component/organism/final-estimate-report';
+	import { calculateWbdPert } from '$stylist/wbd/function/transform/calculate-pert';
+	import { calculateWbdSpread } from '$stylist/wbd/function/transform/calculate-spread';
+	import type { StructWbdTask } from '$stylist/wbd/type/object/task';
+	import type { StructWbdEstimate } from '$stylist/wbd/type/object/estimate';
+	import type { StructWbdRoundSummary } from '$stylist/wbd/type/object/round-summary';
+	import type { StructWbdPertResult } from '$stylist/wbd/type/object/pert-result';
 
 	type WbdParticipant = {
 		id: string;
@@ -47,7 +45,13 @@
 		{ id: 't23', label: 'Platform', parentId: null }
 	];
 
-	const leafSeeds: { id: string; label: string; parentId: string; base: number; volatility: number }[] = [
+	const leafSeeds: {
+		id: string;
+		label: string;
+		parentId: string;
+		base: number;
+		volatility: number;
+	}[] = [
 		{ id: 't2', label: 'Payment gateway integration', parentId: 't1', base: 8, volatility: 1.6 },
 		{ id: 't3', label: 'Order confirmation email', parentId: 't1', base: 2, volatility: 1.2 },
 		{ id: 't4', label: 'Cart abandonment recovery', parentId: 't1', base: 5, volatility: 1.3 },
@@ -67,7 +71,13 @@
 		{ id: 't21', label: 'In-app notification center', parentId: 't18', base: 5, volatility: 1.4 },
 		{ id: 't22', label: 'Notification preferences UI', parentId: 't18', base: 2, volatility: 1.1 },
 		{ id: 't24', label: 'CI/CD pipeline upgrade', parentId: 't23', base: 6, volatility: 1.9 },
-		{ id: 't25', label: 'Observability/tracing rollout', parentId: 't23', base: 5, volatility: 1.6 },
+		{
+			id: 't25',
+			label: 'Observability/tracing rollout',
+			parentId: 't23',
+			base: 5,
+			volatility: 1.6
+		},
 		{ id: 't26', label: 'Feature flag service', parentId: 't23', base: 4, volatility: 1.3 },
 		{ id: 't27', label: 'Rate limiting middleware', parentId: 't23', base: 3, volatility: 1.2 }
 	];
@@ -166,7 +176,9 @@
 		if (direct) return direct;
 		const children = tasks.filter((task) => task.parentId === taskId);
 		if (children.length === 0) return undefined;
-		const childRollups = children.map((child) => rollupFor(child.id)).filter(Boolean) as StructWbdPertResult[];
+		const childRollups = children
+			.map((child) => rollupFor(child.id))
+			.filter(Boolean) as StructWbdPertResult[];
 		if (childRollups.length === 0) return undefined;
 		return {
 			optimistic: childRollups.reduce((sum, r) => sum + r.optimistic, 0),
@@ -177,10 +189,9 @@
 	}
 
 	const rollups = $derived(
-		Object.fromEntries(tasks.map((task) => [task.id, rollupFor(task.id)]).filter(([, v]) => v)) as Record<
-			string,
-			StructWbdPertResult
-		>
+		Object.fromEntries(
+			tasks.map((task) => [task.id, rollupFor(task.id)]).filter(([, v]) => v)
+		) as Record<string, StructWbdPertResult>
 	);
 
 	const submittedByParticipant = $derived(
@@ -233,7 +244,10 @@
 
 <svelte:head>
 	<title>Wideband Delphi — WeOracle</title>
-	<meta name="description" content="Wideband Delphi estimation session built with stylist-svelte." />
+	<meta
+		name="description"
+		content="Wideband Delphi estimation session built with stylist-svelte."
+	/>
 </svelte:head>
 
 <main class="wbd-page">
@@ -287,7 +301,10 @@
 
 			<section class="wbd-page__section">
 				<h2>Convergence of one item across rounds</h2>
-				<ConvergenceChart taskLabel="Payment gateway integration" roundSummaries={gatewayConvergence} />
+				<ConvergenceChart
+					taskLabel="Payment gateway integration"
+					roundSummaries={gatewayConvergence}
+				/>
 			</section>
 		{/if}
 

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import BrandLogo from '$lib/brand-logo.svelte';
-	import LanguageControl from '$lib/wbd/language-control.svelte';
-	import { ObjectLanding } from '$lib/i18n/const/object/landing';
+	import BrandLogo from '$lib/brand/component/molecule/logo/index.svelte';
+	import LanguageControl from '$lib/i18n/component/molecule/language/index.svelte';
+	import { RecordLandingTranslation } from '$lib/i18n/const/record/landing';
 
 	type RequestOption = {
 		id: string;
@@ -33,7 +33,7 @@
 	];
 
 	const currentLang = $derived((page.data as { lang?: string }).lang ?? 'en');
-	const content = $derived(ObjectLanding[currentLang] ?? ObjectLanding.en);
+	const content = $derived(RecordLandingTranslation[currentLang] ?? RecordLandingTranslation.en);
 	const applicationCta = $derived(
 		content.applicationCta ?? {
 			eyebrow: 'Start a request',
@@ -48,14 +48,17 @@
 			submitLabel: 'Send application',
 			thanksTitle: 'Application sent',
 			thanksBody: 'Thanks — we received your request. We will contact you by email shortly.',
-			thanksBodyWithType: 'Thanks — we received your "{type}" request. We will contact you by email shortly.',
+			thanksBodyWithType:
+				'Thanks — we received your "{type}" request. We will contact you by email shortly.',
 			thanksLink: 'Send another request'
 		}
 	);
 	const options = $derived(applicationCta.options.length ? applicationCta.options : defaultOptions);
 	let requestType = $state(page.url.searchParams.get('type') ?? defaultOptions[0]?.id ?? '');
 	const submitted = $derived(page.url.searchParams.get('submitted') === '1');
-	const submittedOption = $derived(options.find((option) => option.id === page.url.searchParams.get('type')));
+	const submittedOption = $derived(
+		options.find((option) => option.id === page.url.searchParams.get('type'))
+	);
 
 	$effect(() => {
 		if (!options.some((option) => option.id === requestType)) {
@@ -106,7 +109,13 @@
 							class="application-page__option"
 							class:application-page__option--active={requestType === option.id}
 						>
-							<input type="radio" name="requestType" value={option.id} bind:group={requestType} required />
+							<input
+								type="radio"
+								name="requestType"
+								value={option.id}
+								bind:group={requestType}
+								required
+							/>
 							<span>
 								<strong>{option.text}</strong>
 								<small>{option.body}</small>

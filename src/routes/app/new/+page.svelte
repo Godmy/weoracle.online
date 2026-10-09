@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { WbdEditSession } from 'stylist-svelte';
-	import type { StructWbdSession } from 'stylist-svelte';
+	import WbdEditSession from '$stylist/wbd/component/organism/wbd-edit-session/index.svelte';
+	import type { StructWbdSession } from '$stylist/wbd/type/object/session';
 
 	let { data } = $props();
 

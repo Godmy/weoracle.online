@@ -1,0 +1,44 @@
+[
+	{
+		"id": "31074",
+		"title": "Consumer price indices for goods and services",
+		"source": "fedstat",
+		"url": "https://www.fedstat.ru/indicator/31074",
+		"description": "Monthly CPI-style indicator exposed through Fedstat filters: territory, product/service group, period, year, and indicator kind.",
+		"filters": [
+			"OKATO territory",
+			"Indicator kind",
+			"Period",
+			"Year",
+			"Goods and services"
+		],
+		"tags": ["prices", "inflation", "regions"]
+	},
+	{
+		"id": "62685",
+		"title": "Consumer price index, annual change",
+		"source": "fedstat",
+		"url": "https://www.fedstat.ru/indicator/62685",
+		"description": "Annual macro CPI indicator referenced from Rosstat macroeconomic control indicators.",
+		"filters": ["Year", "Territory"],
+		"tags": ["prices", "inflation", "macro"]
+	},
+	{
+		"id": "rosstat-price-page",
+		"title": "Rosstat prices and inflation page",
+		"source": "rosstat-file",
+		"url": "https://rosstat.gov.ru/statistics/price",
+		"description": "Entry point for regular Rosstat XLS/XLSX publications: average consumer prices, weekly price monitoring, CPI, producer prices.",
+		"filters": ["Publication table", "Date"],
+		"tags": ["prices", "fuel", "xlsx"]
+	},
+	{
+		"id": "rosstat-opendata",
+		"title": "Rosstat open data catalog",
+		"source": "rosstat-opendata",
+		"url": "https://rosstat.gov.ru/opendata",
+		"description": "Open data catalog for CSV/XML-style datasets and metadata.",
+		"filters": ["Dataset"],
+		"tags": ["catalog", "csv", "metadata"]
+	}
+]

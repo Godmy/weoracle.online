@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { PermissionDeniedPanel } from 'stylist-svelte';
+	import PermissionDeniedPanel from '$stylist/wbd/component/organism/permission-denied-panel/index.svelte';
 
 	let { data, children } = $props();
 </script>

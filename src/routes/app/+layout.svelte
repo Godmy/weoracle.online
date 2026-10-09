@@ -1,21 +1,30 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { AdminSidebar, ThemeModeToggle, ActionSegmentedControl } from 'stylist-svelte';
-	import type { RecipeAdminSidebar } from 'stylist-svelte';
-	import LanguageControl from '$lib/wbd/language-control.svelte';
-	import BrandLogo from '$lib/brand-logo.svelte';
-	import { t } from '$lib/i18n';
+	import { AdminSidebar } from '$stylist/wbd/component/organism/admin-sidebar';
+	import { ThemeModeToggle } from '$stylist/theme/component/atom/theme-mode-toggle';
+	import { ActionSegmentedControl } from '$stylist/control/component/atom/action-segmented-control';
+	import type { RecipeAdminSidebar } from '$stylist/wbd/interface/recipe/admin-sidebar';
+	import LanguageControl from '$lib/i18n/component/molecule/language/index.svelte';
+	import BrandLogo from '$lib/brand/component/molecule/logo/index.svelte';
+	import { t } from '$lib/i18n/function/translate';
 
 	let { data, children } = $props();
 
 	const path = $derived(page.url.pathname);
 
-	const STATIC_SECTIONS = $derived<Array<{ id: string; label: string; href: string; iconName: string }>>([
+	const STATIC_SECTIONS = $derived<
+		Array<{ id: string; label: string; href: string; iconName: string }>
+	>([
 		{ id: 'sessions', label: t('nav.sessions'), href: '/app', iconName: 'list' },
 		{ id: 'questions', label: t('nav.questions'), href: '/app/questions', iconName: 'file' },
 		{ id: 'experts', label: 'Experts', href: '/app/experts', iconName: 'users' },
-		{ id: 'estimates', label: t('nav.estimates'), href: '/app/estimates', iconName: 'check-circle' },
+		{
+			id: 'estimates',
+			label: t('nav.estimates'),
+			href: '/app/estimates',
+			iconName: 'check-circle'
+		},
 		{ id: 'analytics', label: t('nav.analytics'), href: '/app/analytics', iconName: 'activity' },
 		{ id: 'discussions', label: t('nav.discussions'), href: '/app/discussions', iconName: 'chat' },
 		{ id: 'reports', label: t('nav.reports'), href: '/app/reports', iconName: 'folder' }
@@ -23,9 +32,13 @@
 
 	function isActive(item: { id: string; href: string }): boolean {
 		if (item.id === 'sessions') {
-			return !STATIC_SECTIONS.some((s) => s.id !== 'sessions' && (path === s.href || path.startsWith(`${s.href}/`))) &&
+			return (
+				!STATIC_SECTIONS.some(
+					(s) => s.id !== 'sessions' && (path === s.href || path.startsWith(`${s.href}/`))
+				) &&
 				path !== '/app/admin' &&
-				!path.startsWith('/app/admin/');
+				!path.startsWith('/app/admin/')
+			);
 		}
 		return path === item.href || path.startsWith(`${item.href}/`);
 	}
@@ -56,12 +69,16 @@
 		return activeNavItem?.label ?? 'WeOracle';
 	});
 	const showBackToSessions = $derived(isSessionDetailPage);
-	const showNewSessionAction = $derived(path !== '/app/new' && activeNavItem?.id === 'sessions' && !showBackToSessions);
+	const showNewSessionAction = $derived(
+		path !== '/app/new' && activeNavItem?.id === 'sessions' && !showBackToSessions
+	);
 
 	const showSessionFilters = $derived(path === '/app');
 	const visibilityOptions = ['All', 'Public', 'Private'];
 	const visibilityParam = $derived(page.url.searchParams.get('visibility'));
-	const visibilityIndex = $derived(visibilityParam === 'public' ? 1 : visibilityParam === 'private' ? 2 : 0);
+	const visibilityIndex = $derived(
+		visibilityParam === 'public' ? 1 : visibilityParam === 'private' ? 2 : 0
+	);
 
 	function handleVisibilityChange(index: number): void {
 		const url = new URL(page.url);
@@ -100,7 +117,12 @@
 	<div class="wbd-app-shell">
 		<AdminSidebar items={navItems}>
 			{#snippet logo()}
-				<BrandLogo class="wbd-app-shell__brand" href="/app" size="1.75rem" ariaLabel="WeOracle sessions" />
+				<BrandLogo
+					class="wbd-app-shell__brand"
+					href="/app"
+					size="1.75rem"
+					ariaLabel="WeOracle sessions"
+				/>
 			{/snippet}
 		</AdminSidebar>
 		<div class="wbd-app-shell__workspace">

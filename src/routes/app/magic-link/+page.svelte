@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ActionData } from './$types';
-	import { t } from '$lib/i18n';
+	import { t } from '$lib/i18n/function/translate';
 	let { form }: { form: ActionData } = $props();
 
 	// Split around the placeholder ourselves so `form.email` stays plain-text-interpolated

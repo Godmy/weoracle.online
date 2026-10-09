@@ -66,18 +66,24 @@ function formatStatus(row: PublicPollRow, lang: LandingLanguage): string {
 	if (lang === 'ru') {
 		const status = row.status === 'draft' ? 'подготовка' : row.status.replaceAll('_', ' ');
 		const round =
-			row.current_round > 0 ? `раунд ${row.current_round} из ${row.max_rounds}` : `${row.max_rounds} раунда`;
+			row.current_round > 0
+				? `раунд ${row.current_round} из ${row.max_rounds}`
+				: `${row.max_rounds} раунда`;
 		return `${status} / ${round}`;
 	}
 	if (lang === 'es') {
 		const status = row.status === 'draft' ? 'preparación' : row.status.replaceAll('_', ' ');
 		const round =
-			row.current_round > 0 ? `ronda ${row.current_round} de ${row.max_rounds}` : `${row.max_rounds} rondas`;
+			row.current_round > 0
+				? `ronda ${row.current_round} de ${row.max_rounds}`
+				: `${row.max_rounds} rondas`;
 		return `${status} / ${round}`;
 	}
 	const status = row.status === 'draft' ? 'preparing' : row.status.replaceAll('_', ' ');
 	const round =
-		row.current_round > 0 ? `round ${row.current_round} of ${row.max_rounds}` : `${row.max_rounds} rounds`;
+		row.current_round > 0
+			? `round ${row.current_round} of ${row.max_rounds}`
+			: `${row.max_rounds} rounds`;
 	return `${status} / ${round}`;
 }
 

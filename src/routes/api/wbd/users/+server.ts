@@ -1,16 +1,13 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { generateId, mapD1Error } from '$lib/server/wbd/db';
-import { requireRole } from '$lib/server/wbd/auth';
+import { ManagerAuth } from '$lib/server/class/manager/auth';
+import { ManagerUser } from '$lib/server/class/manager/user';
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
-	requireRole(cookies, ['admin']);
-
+	ManagerAuth.requireRole(cookies, ['admin']);
 	const db = platform!.env.DB;
-	const { results } = await db
-		.prepare(`SELECT id, email, name, company, role, created_at FROM wbd_users ORDER BY created_at`)
-		.all();
-	return json(results);
+	const users = await ManagerUser.list(db);
+	return json(users);
 };
 
 /**
@@ -25,22 +22,8 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	if (!body || typeof body.email !== 'string' || typeof body.name !== 'string') {
 		error(400, 'email and name are required');
 	}
-	const { email, name, company } = body as { email: string; name: string; company?: string };
 
 	const db = platform!.env.DB;
-	try {
-		const result = await db
-			.prepare(
-				`INSERT INTO wbd_users (id, email, name, company, role)
-				 VALUES (?1, ?2, ?3, ?4, 'coordinator')
-				 ON CONFLICT(email) DO UPDATE SET name = excluded.name, company = excluded.company
-				 RETURNING *`
-			)
-			.bind(generateId(), email, name, company ?? null)
-			.first();
-		return json(result, { status: 201 });
-	} catch (err) {
-		const { status, message } = mapD1Error(err);
-		error(status, message);
-	}
+	const result = await ManagerUser.upsertCoordinator(db, body);
+	return json(result, { status: 201 });
 };

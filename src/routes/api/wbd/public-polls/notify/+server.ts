@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { sendEmailViaResend } from '$lib/server/wbd/resend';
+import { ManagerEmail } from '$lib/server/class/manager/email';
 
 const FROM = { email: 'login@weoracle.online', name: 'WeOracle' };
 const escapeHtml = (value: string) =>
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	const recipient = env.CONTACT_EMAIL ?? env.ADMIN_EMAIL;
 
 	if (env.RESEND_API_KEY && recipient) {
-		await sendEmailViaResend(env.RESEND_API_KEY, {
+		await ManagerEmail.send(env.RESEND_API_KEY, {
 			to: recipient,
 			from: FROM,
 			subject: 'Public poll notification request',

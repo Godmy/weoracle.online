@@ -1,0 +1,218 @@
+{
+  "source": "ecb",
+  "generatedAt": "2026-08-18T10:54:35.684Z",
+  "rangeFrom": "2024-08-18",
+  "rangeTo": "2026-08-18",
+  "instruments": [
+    {
+      "code": "AUD",
+      "file": "aud.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "BGN",
+      "file": "bgn.json",
+      "points": 350,
+      "from": "2024-08-19",
+      "to": "2025-12-31"
+    },
+    {
+      "code": "BRL",
+      "file": "brl.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "CAD",
+      "file": "cad.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "CHF",
+      "file": "chf.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "CNY",
+      "file": "cny.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "CZK",
+      "file": "czk.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "DKK",
+      "file": "dkk.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "GBP",
+      "file": "gbp.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "HKD",
+      "file": "hkd.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "HUF",
+      "file": "huf.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "IDR",
+      "file": "idr.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "ILS",
+      "file": "ils.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "INR",
+      "file": "inr.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "ISK",
+      "file": "isk.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "JPY",
+      "file": "jpy.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "KRW",
+      "file": "krw.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "MXN",
+      "file": "mxn.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "MYR",
+      "file": "myr.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "NOK",
+      "file": "nok.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "NZD",
+      "file": "nzd.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "PHP",
+      "file": "php.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "PLN",
+      "file": "pln.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "RON",
+      "file": "ron.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "SEK",
+      "file": "sek.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "SGD",
+      "file": "sgd.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "THB",
+      "file": "thb.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "TRY",
+      "file": "try.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "USD",
+      "file": "usd.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    },
+    {
+      "code": "ZAR",
+      "file": "zar.json",
+      "points": 509,
+      "from": "2024-08-19",
+      "to": "2026-08-17"
+    }
+  ]
+}

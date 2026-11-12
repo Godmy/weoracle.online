@@ -2,14 +2,11 @@
 	import { goto } from '$app/navigation';
 	import PermissionDeniedPanel from '$stylist/wbd/component/organism/permission-denied-panel/index.svelte';
 
+	// Users / Audit log are drawer destinations of the app shell, so no local tab row here.
 	let { data, children } = $props();
 </script>
 
 {#if data.isAdmin}
-	<nav class="wbd-admin-nav">
-		<a href="/app/admin">Users</a>
-		<a href="/app/admin/audit-log">Audit log</a>
-	</nav>
 	{@render children()}
 {:else}
 	<PermissionDeniedPanel
@@ -19,17 +16,3 @@
 		onGoBack={() => goto('/app')}
 	/>
 {/if}
-
-<style>
-	.wbd-admin-nav {
-		display: flex;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-		font-size: 0.8125rem;
-	}
-	.wbd-admin-nav a {
-		color: var(--color-text-secondary, #475569);
-		text-decoration: none;
-		font-weight: 600;
-	}
-</style>
